@@ -2,10 +2,10 @@
 
 namespace Concrete\Package\WebApp;
 
+use Core;
+use File;
 use Page;
 use View;
-use File;
-use Core;
 use Events;
 use WebApp\Package\PageTrait;
 use Concrete\Core\Package\Package;
@@ -112,6 +112,67 @@ class Controller extends Package
         $this->addSinglePage('/dashboard/web_app', $pkg, t('Web App'));
     }
 
+    protected function registerEvents()
+    {
+        Events::addListener('on_before_render', function () {
+            $pkg = Core::make(PackageService::class)->getByHandle($this->pkgHandle);
+            $page = Page::getCurrentPage();
+            $config = $pkg->getFileConfig();
+
+            if ($page && $config->get('web_app.activate') === true) {
+                $v = View::getInstance();
+
+                // android
+                $v->addHeaderItem('<meta name="mobile-web-app-capable" content="yes" />');
+
+                // ios
+                $v->addHeaderItem('<meta name="apple-mobile-web-app-capable" content="yes" />');
+                // $v->addHeaderItem('<meta name="apple-mobile-web-app-status-bar-style" content="default" />'); // a bit buggy in modern ios
+
+                // general
+                $v->addHeaderItem('<meta name="screen-orientation" content="portrait" />');
+                $v->addHeaderItem('<link rel="manifest" href="/site.webmanifest" />');
+
+                foreach ($config->get('web_app.launchscreens') as $size => $fID) {
+                    if ($fID > 0) {
+                        $file = File::getByID($fID);
+                        if ($file) {
+                            $sizeArray = explode('x', $size);
+                            $width = $sizeArray[0];
+
+                            switch ($width) {
+                                case '640':
+                                    $mediaString = '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)';
+                                    // no break
+                                case '750':
+                                    $mediaString = '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)';
+                                    // no break
+                                case '1242':
+                                    $mediaString = '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)';
+                                    // no break
+                                case '1125':
+                                    $mediaString = '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)';
+                                    // no break
+                                case '1536':
+                                    $mediaString = '(min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
+                                    // no break
+                                case '1668':
+                                    $mediaString = '(min-device-width: 834px) and (max-device-width: 834px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
+                                    // no break
+                                case '2048':
+                                    $mediaString = '(min-device-width: 1024px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
+                            }
+
+                            if (isset($mediaString)) {
+                                $v->addHeaderItem('<link rel="apple-touch-startup-image" href="' . $file->getRelativePath() . '" media="' . $mediaString . '" />');
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
     public function getPackageName()
     {
         return t('Web App');
@@ -158,58 +219,5 @@ class Controller extends Package
         }
 
         return parent::uninstall();
-    }
-
-    protected function registerEvents()
-    {
-        Events::addListener('on_before_render', function () {
-            $pkg = Core::make(PackageService::class)->getByHandle($this->pkgHandle);
-            $page = Page::getCurrentPage();
-            $config = $pkg->getFileConfig();
-            if ($page && $config->get('web_app.activate') === true) {
-                $v = View::getInstance();
-                // android
-                $v->addHeaderItem('<meta name="mobile-web-app-capable" content="yes" />');
-
-                // ios
-                $v->addHeaderItem('<meta name="apple-mobile-web-app-capable" content="yes" />');
-                // $v->addHeaderItem('<meta name="apple-mobile-web-app-status-bar-style" content="default" />'); // a bit buggy in modern ios
-
-                // general
-                $v->addHeaderItem('<meta name="screen-orientation" content="portrait" />');
-                $v->addHeaderItem('<link rel="manifest" href="/site.webmanifest" />');
-
-                foreach ($config->get('web_app.launchscreens') as $size => $fID) {
-                    if ($fID > 0) {
-                        $file = File::getByID($fID);
-                        if ($file) {
-                            $sizeArray = explode('x', $size);
-                            $width = $sizeArray[0];
-
-                            switch ($width) {
-                                case '640':
-                                    $mediaString = '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)';
-                                case '750':
-                                    $mediaString = '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)';
-                                case '1242':
-                                    $mediaString = '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)';
-                                case '1125':
-                                    $mediaString = '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)';
-                                case '1536':
-                                    $mediaString = '(min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
-                                case '1668':
-                                    $mediaString = '(min-device-width: 834px) and (max-device-width: 834px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
-                                case '2048':
-                                    $mediaString = '(min-device-width: 1024px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
-                            }
-
-                            if (isset($mediaString)) {
-                                $v->addHeaderItem('<link rel="apple-touch-startup-image" href="' . $file->getRelativePath() . '" media="' . $mediaString . '" />');
-                            }
-                        }
-                    }
-                }
-            }
-        });
     }
 }
