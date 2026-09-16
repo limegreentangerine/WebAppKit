@@ -1,20 +1,25 @@
 {
-	"name": "limegreentangerine/composer_package",
-	"description": "composer_description",
+	"name": "limegreentangerine/web_app",
+	"description": "Add standalone web app functionality to a website",
 	"type": "concrete5-package",
 	"license": "MIT",
 	"minimum-stability": "stable",
 	"autoload": {
 		"psr-4": {
-			"ComposerPackage\\": "src/"
+			"WebApp\\": "src/"
 		}
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"ComposerPackage\\Tests\\": "tests/"
+			"WebApp\\Tests\\": "tests/"
 		}
 	},
-	"authors": [],
+	"authors": [
+		{
+			"name": "Lee Jones",
+			"email": "prolific.jones82@gmail.com"
+		}
+	],
 	"require-dev": {
 		"php": "^8.4",
 		"phpunit/phpunit": "^11",

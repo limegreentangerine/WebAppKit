@@ -1,6 +1,6 @@
 <?php
 
-namespace Concrete\Package\ComposerPackage;
+namespace Concrete\Package\WebApp;
 
 use Concrete\Core\Package\Package;
 
@@ -13,7 +13,7 @@ class Controller extends Package
      *
      * @var string
      */
-    protected $pkgHandle = 'composer_package';
+    protected $pkgHandle = 'web_app';
 
     /**
      * The packages version.
@@ -81,7 +81,7 @@ class Controller extends Package
      * @var array
      */
     protected $pkgAutoloaderRegistries = [
-        'src' => '\ComposerPackage',
+        'src' => '\WebApp',
     ];
 
     /**
@@ -95,11 +95,11 @@ class Controller extends Package
 
     public function getPackageName()
     {
-        return t('composer_name');
+        return t('Web App');
     }
 
     public function getPackageDescription()
     {
-        return t('composer_description');
+        return t('Add standalone web app functionality to a website');
     }
 }
