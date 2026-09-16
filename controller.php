@@ -2,10 +2,15 @@
 
 namespace Concrete\Package\WebApp;
 
+use Core;
+use Override;
+use WebApp\Package\PageTrait;
 use Concrete\Core\Package\Package;
+use Concrete\Core\Package\PackageService;
 
 class Controller extends Package
 {
+    use PageTrait;
     /**
      * The packages handle.
      * Note that this must be unique in the
@@ -93,6 +98,17 @@ class Controller extends Package
      */
     protected $tasks = [];
 
+    /**
+     * Install or Upgrade
+     *
+     * @var $pkg Package
+     */
+    protected function installOrUpgrade(\Concrete\Core\Entity\Package $pkg): void
+    {
+        // Add Single Pages
+        $this->addSinglePage('/dashboard/web_app', $pkg, t('Web App'));
+    }
+
     public function getPackageName()
     {
         return t('Web App');
@@ -101,5 +117,38 @@ class Controller extends Package
     public function getPackageDescription()
     {
         return t('Add standalone web app functionality to a website');
+    }
+
+    /**
+     * The packages install routine.
+     */
+    public function install()
+    {
+        $pkg = parent::install();
+        $this->installDatabase();
+        $this->installOrUpgrade($pkg);
+    }
+
+    /**
+     * The packages upgrade routine.
+     */
+    public function upgrade()
+    {
+        $pkg = Core::make(PackageService::class)->getByHandle($this->pkgHandle);
+        parent::upgrade();
+        $this->installOrUpgrade($pkg);
+    }
+
+    /**
+     * Package uninstall routine
+     */
+    public function uninstall()
+    {
+        $manifest = DIR_BASE . '/site.webmanifest';
+        if (file_exists($manifest)) {
+            unlink($manifest);
+        }
+
+        return parent::uninstall();
     }
 }
