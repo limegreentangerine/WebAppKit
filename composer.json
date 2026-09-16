@@ -2,7 +2,7 @@
 	"name": "limegreentangerine/web_app",
 	"description": "Add standalone web app functionality to a website",
 	"type": "concrete5-package",
-	"license": "MIT",
+	"license": "proprietary",
 	"minimum-stability": "stable",
 	"autoload": {
 		"psr-4": {
