@@ -49,5 +49,8 @@
 		"post-install-cmd": [
 			"npm install"
 		]
+	},
+	"require": {
+		"limegreentangerine/class_kit": "^1.0"
 	}
 }
