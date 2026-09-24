@@ -7,8 +7,8 @@ use File;
 use Page;
 use View;
 use Events;
-use WebApp\Package\PageTrait;
 use Concrete\Core\Package\Package;
+use ClassKit\Package\Traits\PageTrait;
 use Concrete\Core\Package\PackageService;
 
 class Controller extends Package
@@ -175,7 +175,7 @@ class Controller extends Package
 
     public function getPackageName()
     {
-        return t('Web App');
+        return t('WebAppKit');
     }
 
     public function getPackageDescription()
