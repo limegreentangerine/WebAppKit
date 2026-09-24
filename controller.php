@@ -3,15 +3,21 @@
 namespace Concrete\Package\WebApp;
 
 use Core;
-use File;
-use Page;
-use View;
+use Route;
 use Events;
-use Concrete\Core\Package\Package;
+use DateTime;
+use WebApp\Events\Push;
+use WebApp\Events\Setup;
+use Concrete\Core\Entity\Package;
+use WebApp\Log\PushNotificationLog;
 use ClassKit\Package\Traits\PageTrait;
+use Symfony\Component\Process\Process;
+use ClassKit\Package\PackageController;
+use Doctrine\ORM\EntityManagerInterface;
+use WebApp\Entity\ScheduledNotification;
 use Concrete\Core\Package\PackageService;
 
-class Controller extends Package
+class Controller extends PackageController
 {
     use PageTrait;
     /**
@@ -99,77 +105,107 @@ class Controller extends Package
      *
      * @var array
      */
-    protected $tasks = [];
+    protected $tasks = [
+        'send_scheduled_notifications' => \WebApp\Command\Task\Controller\SendScheduledNotifications::class,
+    ];
+
+    protected function installServiceWorker(): void
+    {
+        $command = DIR_BASE . '/vendor/bin/install-service-worker';
+
+        if (!is_file($command)) {
+            throw new \RuntimeException('The WebAppKit service-worker Composer command was not found: ' . $command);
+        }
+
+        $process = new Process([$command], DIR_BASE);
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            $output = trim($process->getErrorOutput() . PHP_EOL . $process->getOutput());
+            throw new \RuntimeException('Unable to install the WebAppKit service worker.' . ($output !== '' ? ' ' . $output : ''));
+        }
+    }
 
     /**
      * Install or Upgrade
      *
-     * @var $pkg Package
+     * @var Package $pkg
      */
-    protected function installOrUpgrade(\Concrete\Core\Entity\Package $pkg): void
+    public function installOrUpgrade(Package $pkg)
     {
         // Add Single Pages
         $this->addSinglePage('/dashboard/web_app', $pkg, t('Web App'));
+        $this->addSinglePage('/dashboard/push_notifications', $pkg, t('Push Notifications'));
+        $this->addSinglePage('/dashboard/push_notifications/custom', $pkg, t('Custom Notifications'));
+        $this->addSinglePage('/dashboard/push_notifications/scheduled', $pkg, t('Scheduled Notifications'));
+        $this->addSinglePage('/dashboard/push_notifications/settings', $pkg, t('Settings'));
+
+        // install tasks
+        $this->installContentFile('tasks.xml');
+
+        $this->installServiceWorker();
     }
 
-    protected function registerEvents()
+    public function registerRoutes(): void
+    {
+        Route::register('/push/subscribe', '\PushNotifications\Events\Subscription::subscribe');
+        Route::register('/push/unsubscribe', '\PushNotifications\Events\Subscription::unsubscribe');
+        Route::register('/push/broadcast', '\PushNotifications\Events\Push::broadcast');
+    }
+
+    public function registerEvents(): void
     {
         Events::addListener('on_before_render', function () {
-            $pkg = Core::make(PackageService::class)->getByHandle($this->pkgHandle);
-            $page = Page::getCurrentPage();
-            $config = $pkg->getFileConfig();
+            Setup::setupWebApp();
+            Setup::registerPushAssets();
+        });
 
-            if ($page && $config->get('web_app.activate') === true) {
-                $v = View::getInstance();
+        Events::addListener('on_page_type_publish', function ($event) {
+            $pageType = $event->getPageTypeObject();
+            $logger = Core::make(PushNotificationLog::class)->getLogger();
 
-                // android
-                $v->addHeaderItem('<meta name="mobile-web-app-capable" content="yes" />');
+            if ($pageType->getPageTypeHandle() === 'news') {
+                $page = $event->getPageObject();
+                $now = new DateTime();
+                $newsDate = $page->getCollectionDatePublicObject();
 
-                // ios
-                $v->addHeaderItem('<meta name="apple-mobile-web-app-capable" content="yes" />');
-                // $v->addHeaderItem('<meta name="apple-mobile-web-app-status-bar-style" content="default" />'); // a bit buggy in modern ios
+                $em = Core::make(EntityManagerInterface::class);
+                $scheduledNotification = ScheduledNotification::getByColumnAndValue('referenceId', $page->getCollectionID());
 
-                // general
-                $v->addHeaderItem('<meta name="screen-orientation" content="portrait" />');
-                $v->addHeaderItem('<link rel="manifest" href="/site.webmanifest" />');
-
-                foreach ($config->get('web_app.launchscreens') as $size => $fID) {
-                    if ($fID > 0) {
-                        $file = File::getByID($fID);
-                        if ($file) {
-                            $sizeArray = explode('x', $size);
-                            $width = $sizeArray[0];
-
-                            switch ($width) {
-                                case '640':
-                                    $mediaString = '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)';
-                                    // no break
-                                case '750':
-                                    $mediaString = '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)';
-                                    // no break
-                                case '1242':
-                                    $mediaString = '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)';
-                                    // no break
-                                case '1125':
-                                    $mediaString = '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)';
-                                    // no break
-                                case '1536':
-                                    $mediaString = '(min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
-                                    // no break
-                                case '1668':
-                                    $mediaString = '(min-device-width: 834px) and (max-device-width: 834px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
-                                    // no break
-                                case '2048':
-                                    $mediaString = '(min-device-width: 1024px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
-                            }
-
-                            if (isset($mediaString)) {
-                                $v->addHeaderItem('<link rel="apple-touch-startup-image" href="' . $file->getRelativePath() . '" media="' . $mediaString . '" />');
-                            }
-                        }
+                if ($scheduledNotification) {
+                    if ($newsDate->format('U') > $now->format('U')) {
+                        $logger->addDebug(t('Updated scheduled notification for %s', $page->getCollectionName()));
+                        $scheduledNotification->setSendDate($newsDate);
+                        $em->persist($scheduledNotification);
+                        $em->flush();
+                    } else {
+                        $logger->addDebug(t('Sent scheduled notification for %s', $page->getCollectionName()));
+                        Push::sendNewsNotification($page);
                     }
+
+                } elseif ($newsDate->format('U') > $now->format('U')) {
+                    $logger->addDebug(t('Scheduled notification for %s', $page->getCollectionName()));
+                    $scheduledNotification = new ScheduledNotification();
+                    $scheduledNotification->setType('News');
+                    $scheduledNotification->setReferenceId($page->getCollectionID());
+                    $scheduledNotification->setSendDate($newsDate);
+                    $em->persist($scheduledNotification);
+                    $em->flush();
+                } else {
+                    $logger->addDebug(t('Sent notification for %s', $page->getCollectionName()));
+                    Push::sendNewsNotification($page);
                 }
             }
+        });
+
+        Events::addListener('send_scheduled_news', function ($event) {
+            $page = $event->getArgument('page');
+            Push::sendNewsNotification($page);
+        });
+
+        Events::addListener('send_custom_notification', function ($event) {
+            $notification = $event->getArgument('notification');
+            Push::sendCustomNotification($notification);
         });
     }
 
@@ -180,7 +216,7 @@ class Controller extends Package
 
     public function getPackageDescription()
     {
-        return t('Add standalone web app functionality to a website');
+        return t('Add standalone web app functionality, and push notifications to a website');
     }
 
     public function on_start()

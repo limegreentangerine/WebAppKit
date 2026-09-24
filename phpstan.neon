@@ -1,0 +1,10 @@
+parameters:
+  bootstrapFiles:
+    - phpstan-bootstrap.php
+  level: 6
+  paths:
+    - controllers
+    - elements
+    - single_pages
+    - src
+    - tests

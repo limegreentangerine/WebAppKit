@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<concrete5-cif version="1.0">
+
+    <tasks>
+        <task handle="send_scheduled_notifications" package="push_notifications" />
+    </tasks>
+
+    <tasksets>
+        <taskset handle="web_app" name="WebAppKit">
+            <task handle="send_scheduled_notifications" />
+        </taskset>
+    </tasksets>
+
+</concrete5-cif>

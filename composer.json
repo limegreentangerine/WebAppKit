@@ -24,7 +24,8 @@
 		"php": "^8.4",
 		"phpunit/phpunit": "^11",
 		"concrete5/core": "^9.2",
-		"friendsofphp/php-cs-fixer": "^3.95"
+		"friendsofphp/php-cs-fixer": "^3.95",
+		"phpstan/phpstan": "^2.2"
 	},
 	"config": {
 		"allow-plugins": {
@@ -32,6 +33,7 @@
 		}
 	},
 	"scripts": {
+		"check": "./vendor/bin/phpstan analyse -c phpstan.neon --error-format=table",
 		"test": "phpunit",
 		"test-coverage": "phpunit --coverage-text",
 		"format:php": "php-cs-fixer fix",
@@ -51,6 +53,10 @@
 		]
 	},
 	"require": {
-		"limegreentangerine/class_kit": "^1.0"
-	}
+		"limegreentangerine/class_kit": "^1.0",
+		"minishlink/web-push": "^10.0"
+	},
+	"bin": [
+		"bin/install-service-worker"
+	]
 }

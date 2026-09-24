@@ -8,3 +8,5 @@
 /package-lock.json export-ignore
 /package.json export-ignore
 /phpunit.xml.dist export-ignore
+/phpstan-bootstrap.php export-ignore
+/phpstan.neon export-ignore
