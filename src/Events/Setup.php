@@ -14,40 +14,48 @@ use Concrete\Core\Error\UserMessageException;
 
 class Setup
 {
-    public string $pkgHandle = 'web_app';
-    public Package $pkg;
-    public Liaison $config;
-    public Page $page;
-    public View $view;
-    public bool $active;
+    private static string $pkgHandle = 'web_app';
+    private static ?Package $pkg = null;
+    private static ?Liaison $config = null;
+    private static ?Page $page = null;
+    private static ?View $view = null;
+    private static ?bool $active = null;
 
-    public function __construct()
+    /**
+     * Populates the static package/page/view state used by the event handlers below.
+     * Safe to call multiple times; only initializes once per request.
+     */
+    private static function init(): void
     {
-        $this->pkg = Core::make(PackageService::class)->getClass($this->pkgHandle);
-        if (!$this->pkg) {
-            throw new UserMessageException(t('Package %s not found', $this->pkgHandle));
+        if (self::$active !== null) {
+            return;
         }
 
-        $this->config = $this->pkg->getFileConfig();
-        if (!$this->config) {
-            throw new UserMessageException(t('Package %s Config not found', $this->pkgHandle));
+        self::$pkg = Core::make(PackageService::class)->getClass(self::$pkgHandle);
+        if (!self::$pkg) {
+            throw new UserMessageException(t('Package %s not found', self::$pkgHandle));
         }
 
-        $this->page = Page::getCurrentPage();
-        if (!$this->page || $this->page->isError()) {
+        // Package::getFileConfig() always returns a Liaison, so no null-check is needed here.
+        self::$config = self::$pkg->getFileConfig();
+
+        self::$page = Page::getCurrentPage();
+        if (!self::$page || self::$page->isError()) {
             throw new UserMessageException(t('Current page not found'));
         }
 
-        $this->view = $this->page->getPageController()->getViewObject();
-        if (!$this->view) {
+        self::$view = self::$page->getPageController()->getViewObject();
+        if (!self::$view) {
             throw new UserMessageException(t('Page View not found'));
         }
 
-        $this->active = $this->config->get('web_app.activate');
+        self::$active = (bool) self::$config->get('web_app.activate');
     }
 
     public static function setupWebApp(): void
     {
+        self::init();
+
         if (!self::$active) {
             return;
         }
@@ -99,6 +107,8 @@ class Setup
 
     public static function registerPushAssets(): void
     {
+        self::init();
+
         $currentKeys = PushKey::getByID(self::$config->get('push_notifications.key_id'));
 
         if (

@@ -2,23 +2,23 @@
 
 namespace WebApp\Events;
 
-use Concrete\Core\Package\PackageService;
-use Concrete\Core\Page\Page;
-use Concrete\Core\Support\Facade\Application;
 use Core;
-use Exception;
 use File;
-use GuzzleHttp\Client as HttpClient;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\TransferStats;
-use Illuminate\Support\Facades\URL;
-use Minishlink\WebPush\Subscription;
-use Minishlink\WebPush\WebPush;
+use Exception;
 use Monolog\Logger;
-use WebApp\Entity\CustomNotification;
 use WebApp\Entity\PushKey;
-use WebApp\Events\Subscription as WebAppSubscription;
+use Concrete\Core\Page\Page;
+use GuzzleHttp\TransferStats;
+use Minishlink\WebPush\WebPush;
+use Illuminate\Support\Facades\URL;
 use WebApp\Log\PushNotificationLog;
+use GuzzleHttp\Client as HttpClient;
+use Minishlink\WebPush\Subscription;
+use WebApp\Entity\CustomNotification;
+use Concrete\Core\Package\PackageService;
+use GuzzleHttp\Exception\RequestException;
+use Concrete\Core\Support\Facade\Application;
+use WebApp\Events\Subscription as WebAppSubscription;
 use WebApp\Search\ItemList\PushSubscription\PushSubscriptions as SubscriptionList;
 
 class Push
