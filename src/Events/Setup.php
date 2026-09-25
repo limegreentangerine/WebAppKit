@@ -2,15 +2,15 @@
 
 namespace WebApp\Events;
 
-use Concrete\Core\Config\Repository\Liaison;
-use Concrete\Core\Error\UserMessageException;
-use Concrete\Core\Package\Package;
-use Concrete\Core\Package\PackageService;
-use Concrete\Core\Page\Page;
-use Concrete\Core\View\View;
 use Core;
 use File;
 use WebApp\Entity\PushKey;
+use Concrete\Core\Page\Page;
+use Concrete\Core\View\View;
+use Concrete\Core\Package\Package;
+use Concrete\Core\Package\PackageService;
+use Concrete\Core\Config\Repository\Liaison;
+use Concrete\Core\Error\UserMessageException;
 
 class Setup
 {
@@ -62,6 +62,7 @@ class Setup
             if ($fID > 0) {
                 $file = File::getByID($fID);
                 if ($file) {
+                    $version = $file->getApprovedVersion();
                     $sizeArray = explode('x', $size);
                     $width = $sizeArray[0];
 
@@ -89,7 +90,7 @@ class Setup
                     }
 
                     if (isset($mediaString)) {
-                        self::$view->addHeaderItem('<link rel="apple-touch-startup-image" href="' . $file->getRelativePath() . '" media="' . $mediaString . '" />');
+                        self::$view->addHeaderItem('<link rel="apple-touch-startup-image" href="' . $version->getRelativePath() . '" media="' . $mediaString . '" />');
                     }
                 }
             }

@@ -2,26 +2,32 @@
 
 namespace WebApp\Events;
 
-use Log;
-use Core;
-use File;
-use Exception;
-use WebApp\Entity\PushKey;
-use GuzzleHttp\TransferStats;
-use Minishlink\WebPush\WebPush;
-use GuzzleHttp\Client as HttpClient;
-use Minishlink\WebPush\Subscription;
 use Concrete\Core\Package\PackageService;
-use GuzzleHttp\Exception\RequestException;
+use Concrete\Core\Page\Page;
 use Concrete\Core\Support\Facade\Application;
+use Core;
+use Exception;
+use File;
+use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\TransferStats;
+use Illuminate\Support\Facades\URL;
+use Minishlink\WebPush\Subscription;
+use Minishlink\WebPush\WebPush;
+use Monolog\Logger;
+use WebApp\Entity\CustomNotification;
+use WebApp\Entity\PushKey;
+use WebApp\Events\Subscription as WebAppSubscription;
+use WebApp\Log\PushNotificationLog;
 use WebApp\Search\ItemList\PushSubscription\PushSubscriptions as SubscriptionList;
 
 class Push
 {
+    protected Logger $logger;
+
     public function __construct()
     {
-        //TODO: look at this file again
-        throw new \Exception('Not implemented');
+        $this->logger = Core::make(PushNotificationLog::class)->getLogger();
     }
 
     protected function getVapidKeys()
@@ -89,7 +95,7 @@ class Push
         foreach ($webPush->flush() as $report) {
             $endpoint = $report->getRequest()->getUri()->__toString();
 
-            \Log::addDebug(json_encode($report->getRequest()));
+            $this->logger->addDebug(json_encode($report->getRequest()));
 
             if (!$report->isSuccess()) {
                 $errors[] = "[x] Message failed to sent for subscription {$endpoint}: {$report->getReason()}";
@@ -103,13 +109,13 @@ class Push
         }
 
         foreach ($toRemove as $endpoint) {
-            \PushNotifications\Events\Subscription::unsubscribe($endpoint);
+            WebAppSubscription::unsubscribe($endpoint);
         }
 
         $response['success'] = $success;
         $response['errors'] = $errors;
 
-        Log::addDebug(json_encode($response));
+        $this->logger->addDebug(json_encode($response));
 
         echo json_encode($response);
         exit;
@@ -120,9 +126,12 @@ class Push
         $app = Application::getFacadeApplication();
         $site = $app->make('site')->getSite();
         $config = $site->getConfigRepository();
+        $appleIconFID = (int) $config->get('misc.iphone_home_screen_thumbnail_fid');
+        $appleIconFile = File::getByID($appleIconFID);
 
-        if (($appleIconFID = (int) $config->get('misc.iphone_home_screen_thumbnail_fid')) && ($appleIconFile = File::getByID($appleIconFID))) {
-            $appIcon = $appleIconFile->getURL();
+        if ($appleIconFile) {
+            $appleIconFileVersion = $appleIconFile->getApprovedVersion();
+            $appIcon = $appleIconFileVersion->getURL();
         } else {
             $appIcon = false;
         }
@@ -175,10 +184,14 @@ class Push
             $payload['icon'] = $icon;
         }
 
-        Log::addDebug(json_encode($payload));
+        Core::make(PushNotificationLog::class)
+            ->getLogger()
+            ->addDebug(json_encode($payload));
 
         $response = self::makeRequest('/push/broadcast', $payload);
-        Log::addDebug(json_encode($response->getBody()));
+        Core::make(PushNotificationLog::class)
+            ->getLogger()
+            ->addDebug(json_encode($response->getBody()));
     }
 
     /**
@@ -203,10 +216,14 @@ class Push
             $payload['icon'] = $icon;
         }
 
-        Log::addDebug(json_encode($payload));
+        Core::make(PushNotificationLog::class)
+            ->getLogger()
+            ->addDebug(json_encode($payload));
 
         $response = self::makeRequest('/push/broadcast', $payload);
-        Log::addDebug(json_encode($response->getBody()));
+        Core::make(PushNotificationLog::class)
+            ->getLogger()
+            ->addDebug(json_encode($response->getBody()));
     }
 
     /**
@@ -229,10 +246,14 @@ class Push
             $payload['icon'] = $icon;
         }
 
-        Log::addDebug(json_encode($payload));
+        Core::make(PushNotificationLog::class)
+            ->getLogger()
+            ->addDebug(json_encode($payload));
 
         $response = self::makeRequest('/push/broadcast', $payload);
-        Log::addDebug(json_encode($response->getBody()));
+        Core::make(PushNotificationLog::class)
+            ->getLogger()
+            ->addDebug(json_encode($response->getBody()));
     }
 
     /**
@@ -245,9 +266,11 @@ class Push
     public static function makeRequest(string $apiUrl, array $data = []): PushNotificationResponse
     {
         $client = new HttpClient();
-        $fullUrl = \URL::to($apiUrl);
+        $fullUrl = URL::to($apiUrl);
 
-        Log::addDebug($fullUrl);
+        Core::make(PushNotificationLog::class)
+            ->getLogger()
+            ->addDebug($fullUrl);
 
         try {
             $options = [
@@ -266,20 +289,20 @@ class Push
                 $options['body'] = json_encode($data);
             }
 
-            $res = $client->request('post', $fullUrl->__toString(), $options);
+            $res = $client->request('post', $fullUrl, $options);
         } catch (RequestException $e) {
             $resp = new PushNotificationResponse();
-            $resp->setUrl($url);
+            $resp->setUrl($fullUrl);
             $resp->setStatusCode($e->getResponse()->getStatusCode());
             $resp->setBody($e->getResponse()->getBody());
             return $resp;
         }
 
-        unset($obj);
         $resp = new PushNotificationResponse();
-        $resp->setUrl($url->__toString());
+        $resp->setUrl($fullUrl);
         $resp->setStatusCode($res->getStatusCode());
         $resp->setBody($res->getBody());
+
         return $resp;
     }
 }

@@ -4,19 +4,11 @@ namespace WebApp\Events;
 
 use Core;
 use WebApp\Entity\PushSubscription;
-use Doctrine\ORM\EntityManagerInterface;
-use Monolog\Logger;
 use WebApp\Log\PushNotificationLog;
+use Doctrine\ORM\EntityManagerInterface;
 
 class Subscription
 {
-    protected Logger $logger;
-
-    public function __construct()
-    {
-        $this->logger = Core::make(PushNotificationLog::class)->getLogger();
-    }
-
     public function subscribe()
     {
         $success = false;
@@ -62,13 +54,5 @@ class Subscription
         Core::make(PushNotificationLog::class)
             ->getLogger()
             ->addDebug(t('%s removed', $endpoint));
-    }
-
-    /**
-     * Get the value of logger
-     */
-    public function getLogger()
-    {
-        return $this->logger;
     }
 }

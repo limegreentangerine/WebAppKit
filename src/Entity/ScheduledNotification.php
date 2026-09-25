@@ -2,10 +2,10 @@
 
 namespace WebApp\Entity;
 
-use ClassKit\Entity\Core\BaseEntity;
-use Concrete\Core\Page\Page;
 use DateTime;
+use Concrete\Core\Page\Page;
 use Doctrine\ORM\Mapping as ORM;
+use ClassKit\Entity\Core\BaseEntity;
 
 /**
  * @ORM\Entity

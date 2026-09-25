@@ -2,9 +2,9 @@
 
 namespace WebApp\Search\Result\CustomNotification\Item;
 
-use ClassKit\Search\Result\Item\ItemTrait;
-use Concrete\Core\Search\Result\Item;
 use Illuminate\Support\Facades\URL;
+use Concrete\Core\Search\Result\Item;
+use ClassKit\Search\Result\Item\ItemTrait;
 
 class CustomNotifications extends Item
 {
