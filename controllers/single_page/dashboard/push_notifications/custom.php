@@ -3,7 +3,6 @@
 namespace Concrete\Package\WebApp\Controller\SinglePage\Dashboard\PushNotifications;
 
 use Core;
-use DateTime;
 use Concrete\Core\Page\Controller\DashboardPageController;
 use WebApp\Entity\CustomNotification as CustomNotificationEntity;
 use Concrete\Package\WebApp\Controller\Search\CustomNotification\CustomNotifications as SearchController;
@@ -16,7 +15,10 @@ class Custom extends DashboardPageController
         'form/page_selector',
     ];
 
-    protected function validate($args)
+    /**
+     * @param array<mixed> $args
+     */
+    protected function validate(array $args): void
     {
         $vstrings = $this->app->make('helper/validation/strings');
 
@@ -29,7 +31,7 @@ class Custom extends DashboardPageController
         }
     }
 
-    public function view()
+    public function view(): void
     {
         $reset = false;
 
@@ -69,24 +71,24 @@ class Custom extends DashboardPageController
         $this->set('allowed_num_results', $allowed_num_results);
     }
 
-    public function add() {}
+    public function add(): void {}
 
-    public function details($id)
+    public function details(int $id): void
     {
         if (!$id) {
-            $this->redirect('/dashboard/push_notifications/custom/');
+            $this->buildRedirect('/dashboard/push_notifications/custom/');
         }
 
         $entity = CustomNotificationEntity::getByID($id);
 
         if (!$entity) {
-            $this->redirect('/dashboard/push_notifications/custom/');
+            $this->buildRedirect('/dashboard/push_notifications/custom/');
         }
 
         $this->set('entity', $entity);
     }
 
-    public function save()
+    public function save(): void
     {
         if ($this->post()) {
             $post = $this->post();
@@ -100,30 +102,34 @@ class Custom extends DashboardPageController
             $post['sendDate'] = Core::make('helper/form/date_time')->translate('sendDate', $post, true);
 
             if (!$this->error->has()) {
-                $now = new DateTime();
+                $entity = new CustomNotificationEntity();
 
                 if (isset($post['id'])) {
-                    $entity = CustomNotificationEntity::getByID($post['id']);
+                    $existingEntity = CustomNotificationEntity::getByID((int) $post['id']);
+
+                    if ($existingEntity instanceof CustomNotificationEntity) {
+                        $entity = $existingEntity;
+                    } else {
+                        $this->error->add(t('The custom notification could not be found.'));
+                    }
                 }
 
-                if (!isset($entity)) {
-                    $entity = new CustomNotificationEntity();
+                if (!$this->error->has()) {
+                    $entity->setTitle($post['title']);
+                    $entity->setDescription($post['description']);
+                    $entity->setLink($post['link']);
+                    $entity->setSendDate($post['sendDate']);
+
+                    $this->entityManager->persist($entity);
+                    $this->entityManager->flush();
+
+                    $this->flash('success', t('Custom Notification Saved.'));
+
+                    $this->buildRedirect('/dashboard/push_notifications/custom/');
                 }
-
-                $entity->setTitle($post['title']);
-                $entity->setDescription($post['description']);
-                $entity->setLink($post['link']);
-                $entity->setSendDate($post['sendDate']);
-
-                $this->entityManager->persist($entity);
-                $this->entityManager->flush();
-
-                $this->flash('success', t('Custom Notification Saved.'));
-
-                return $this->redirect('/dashboard/push_notifications/custom/');
             }
-            $this->set('formContent', $post);
 
+            $this->set('formContent', $post);
         }
     }
 }

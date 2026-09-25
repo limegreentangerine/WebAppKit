@@ -8,7 +8,7 @@ use Concrete\Core\Search\Pagination\Pagination;
 use Concrete\Core\Application\ApplicationAwareTrait;
 use Concrete\Core\Search\ItemList\Database\ItemList;
 use Concrete\Core\Application\ApplicationAwareInterface;
-use PushNotifications\Entity\ScheduledNotification as ScheduledNotificationEntity;
+use WebApp\Entity\ScheduledNotification as ScheduledNotificationEntity;
 
 class ScheduledNotifications extends ItemList implements ApplicationAwareInterface
 {

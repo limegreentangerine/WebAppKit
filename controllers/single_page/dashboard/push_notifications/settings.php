@@ -7,11 +7,12 @@ use WebApp\Entity\PushKey;
 use Minishlink\WebPush\VAPID;
 use Doctrine\ORM\EntityManagerInterface;
 use Concrete\Core\Package\PackageService;
+use Symfony\Component\HttpFoundation\Response;
 use Concrete\Core\Page\Controller\DashboardPageController;
 
 class Settings extends DashboardPageController
 {
-    public function view()
+    public function view(): void
     {
         $pkg = Core::make(PackageService::class)->getByHandle('web_app');
         $config = $pkg->getFileConfig();
@@ -19,7 +20,7 @@ class Settings extends DashboardPageController
         $this->set('vapidKeys', $vapidKeys);
     }
 
-    public function generate_keys()
+    public function generate_keys(): Response
     {
         $vapid = VAPID::createVapidKeys();
 

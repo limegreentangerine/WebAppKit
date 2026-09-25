@@ -2,9 +2,10 @@
 
 namespace WebApp\Entity;
 
+use ClassKit\Entity\Core\BaseEntity;
+use Concrete\Core\Page\Page;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
-use ClassKit\Entity\Core\BaseEntity;
 
 /**
  * @ORM\Entity
@@ -77,15 +78,15 @@ class CustomNotification extends BaseEntity
     /**
      * Get the value of linkUrl
      */
-    public function getLink(): string
+    public function getLink(): int
     {
         return $this->link;
     }
 
     public function getLinkUrl(): ?string
     {
-        $page = \Page::getByID($this->link);
-        return ($page) ? $page->getCollectionLink() : null;
+        $page = Page::getByID($this->link);
+        return (!$page->isError()) ? $page->getCollectionLink() : null;
     }
 
     /**
@@ -93,7 +94,7 @@ class CustomNotification extends BaseEntity
      *
      * @return self
      */
-    public function setLink(string $link): self
+    public function setLink(int $link): self
     {
         $this->link = $link;
 

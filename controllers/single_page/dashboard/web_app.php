@@ -4,7 +4,7 @@ namespace Concrete\Package\WebApp\Controller\SinglePage\Dashboard;
 
 use Core;
 use File;
-use Concrete\Core\Entity\Package;
+use Concrete\Core\Package\Package;
 use Concrete\Core\Site\Config\Liaison;
 use Concrete\Core\Package\PackageService;
 use Concrete\Core\Entity\File\File as FileEntity;
@@ -19,6 +19,9 @@ class WebApp extends DashboardPageController
         'concrete/asset_library',
     ];
 
+    /**
+     * @return array<string>
+     */
     protected array $iconDimensions = [
         '48x48',
         '72x72',
@@ -30,6 +33,9 @@ class WebApp extends DashboardPageController
         '512x512',
     ];
 
+    /**
+     * @return array<string>
+     */
     protected array $iosLaunchScreenDimensions = [
         '640x1136',
         '750x1294',
@@ -40,6 +46,9 @@ class WebApp extends DashboardPageController
         '2048x2732',
     ];
 
+    /**
+     * @return array<string, string>
+     */
     protected array $displayMethods = [
         '' => 'Choose a display method...',
         'fullscreen' => 'Fullscreen',
@@ -52,7 +61,7 @@ class WebApp extends DashboardPageController
 
     protected Package $pkg;
 
-    protected function validateSubmit(array $post)
+    protected function validateSubmit(array $post): void
     {
         $vstrings = $this->app->make('helper/validation/strings');
 
@@ -65,7 +74,7 @@ class WebApp extends DashboardPageController
         }
     }
 
-    protected function generateSiteManifest()
+    protected function generateSiteManifest(): void
     {
         // remove current manifest
         $fileName = DIR_BASE . '/site.webmanifest';
@@ -102,10 +111,11 @@ class WebApp extends DashboardPageController
             if ($fID > 0) {
                 $file = File::getByID($fID);
                 if ($file) {
+                    $version = $file->getApprovedVersion();
                     $size = ($size == 'default') ? '57x57' : $size;
                     $data['icons'][] = [
-                        'src' => $file->getRelativePath(),
-                        'type' => $file->getMimeType(),
+                        'src' => $version->getRelativePath(),
+                        'type' => $version->getMimeType(),
                         'sizes' => '57x57',
                     ];
                 }
@@ -126,9 +136,10 @@ class WebApp extends DashboardPageController
 
         $this->siteConfig = Core::make('site')->getSite()->getConfigRepository();
         $fid = (int) $this->siteConfig->get('misc.iphone_home_screen_thumbnail_fid');
-        $this->set('iosHome', $fid === 0 ? null : $this->entityManager->find(FileEntity::class, $fid));
+        $file = $this->entityManager->find(FileEntity::class, $fid);
+        $this->set('iosHome', $file ? $file : null);
 
-        $this->pkg = Core::make(PackageService::class)->getByHandle('web_app');
+        $this->pkg = Core::make(PackageService::class)->getClass('web_app');
         $this->set('pkg', $this->pkg);
 
         $this->set('iosLaunchScreenDimensions', $this->iosLaunchScreenDimensions);

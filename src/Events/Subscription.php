@@ -5,9 +5,18 @@ namespace WebApp\Events;
 use Core;
 use WebApp\Entity\PushSubscription;
 use Doctrine\ORM\EntityManagerInterface;
+use Monolog\Logger;
+use WebApp\Log\PushNotificationLog;
 
 class Subscription
 {
+    protected Logger $logger;
+
+    public function __construct()
+    {
+        $this->logger = Core::make(PushNotificationLog::class)->getLogger();
+    }
+
     public function subscribe()
     {
         $success = false;
@@ -43,13 +52,23 @@ class Subscription
         exit;
     }
 
-    public static function unsubscribe($endpoint)
+    public static function unsubscribe(string $endpoint)
     {
         $em = Core::make(EntityManagerInterface::class);
         $subscription = PushSubscription::getByColumnAndValue('endpoint', $endpoint);
         $em->remove($subscription);
         $em->flush($subscription);
 
-        \Log::addDebug(t('%s removed', $endpoint));
+        Core::make(PushNotificationLog::class)
+            ->getLogger()
+            ->addDebug(t('%s removed', $endpoint));
+    }
+
+    /**
+     * Get the value of logger
+     */
+    public function getLogger()
+    {
+        return $this->logger;
     }
 }

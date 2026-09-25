@@ -1,16 +1,15 @@
 <?php
 
-namespace PushNotifications\Command;
+namespace WebApp\Command;
 
 use Core;
-use Page;
 use Events;
+use Concrete\Core\Page\Page;
 use WebApp\Log\PushNotificationLog;
 use WebApp\Entity\CustomNotification;
 use Doctrine\ORM\EntityManagerInterface;
 use WebApp\Entity\ScheduledNotification;
 use Symfony\Component\EventDispatcher\GenericEvent;
-use WebApp\Command\SendScheduledNotificationCommand;
 use Concrete\Core\Command\Task\Output\OutputAwareTrait;
 use Concrete\Core\Command\Task\Output\OutputAwareInterface;
 
@@ -26,7 +25,7 @@ class SendScheduledNotificationCommandHandler implements OutputAwareInterface
         switch ($type) {
             case 'news':
                 $page = Page::getByID($command->getReferenceId());
-                if (is_object($page)) {
+                if (!$page->isError()) {
                     // publish event to send notification
                     $event = new GenericEvent();
                     $event->setArgument('page', $page);

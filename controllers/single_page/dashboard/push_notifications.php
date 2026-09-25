@@ -6,7 +6,7 @@ use Concrete\Core\Page\Controller\DashboardPageController;
 
 class PushNotifications extends DashboardPageController
 {
-    public function view()
+    public function view(): void
     {
         $this->buildRedirect('/dashboard/push_notifications/custom');
     }

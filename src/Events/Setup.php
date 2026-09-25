@@ -2,28 +2,28 @@
 
 namespace WebApp\Events;
 
-use Core;
-use File;
-use Page;
-use View;
-use WebApp\Entity\PushKey;
-use Concrete\Core\Entity\Package;
-use Concrete\Core\Package\PackageService;
 use Concrete\Core\Config\Repository\Liaison;
 use Concrete\Core\Error\UserMessageException;
+use Concrete\Core\Package\Package;
+use Concrete\Core\Package\PackageService;
+use Concrete\Core\Page\Page;
+use Concrete\Core\View\View;
+use Core;
+use File;
+use WebApp\Entity\PushKey;
 
 class Setup
 {
-    protected string $pkgHandle = 'web_app';
-    protected Package $pkg;
-    protected Liaison $config;
-    protected Page $page;
-    protected View $view;
-    protected bool $active;
+    public string $pkgHandle = 'web_app';
+    public Package $pkg;
+    public Liaison $config;
+    public Page $page;
+    public View $view;
+    public bool $active;
 
     public function __construct()
     {
-        $this->pkg = Core::make(PackageService::class)->getByHandle($this->pkgHandle);
+        $this->pkg = Core::make(PackageService::class)->getClass($this->pkgHandle);
         if (!$this->pkg) {
             throw new UserMessageException(t('Package %s not found', $this->pkgHandle));
         }

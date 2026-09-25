@@ -1,6 +1,6 @@
 <?php defined('C5_EXECUTE') or die('Access Denied.'); ?>
 
-<?php if (isset($token) && isset($view) && isset($form_color) && isset($concrete_asset_library)) { ?>
+<?php if (isset($form) && isset($token) && isset($view) && isset($form_color) && isset($concrete_asset_library)) { ?>
     <form method="post" action="<?php echo $view->action('save'); ?>">
         <?php echo $token->output('webapp_settings_submit') ?>
 

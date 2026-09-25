@@ -24,3 +24,13 @@ if (!class_exists('Core', false)) {
 if (!class_exists('File', false)) {
     class_alias(Concrete\Core\File\File::class, 'File');
 }
+
+if (!class_exists('Events', false)) {
+    class Events
+    {
+        public static function dispatch(string $eventName, ?object $event = null): mixed
+        {
+            return null;
+        }
+    }
+}

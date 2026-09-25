@@ -2,9 +2,10 @@
 
 namespace WebApp\Entity;
 
+use ClassKit\Entity\Core\BaseEntity;
+use Concrete\Core\Page\Page;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
-use ClassKit\Entity\Core\BaseEntity;
 
 /**
  * @ORM\Entity
@@ -101,8 +102,8 @@ class ScheduledNotification extends BaseEntity
     public function getLinkUrl(): ?string
     {
         if (strtolower($this->getType()) === 'news') {
-            $page = \Page::getByID($this->getReferenceId());
-            if ($page) {
+            $page = Page::getByID($this->getReferenceId());
+            if (!$page->isError()) {
                 return $page->getCollectionLink();
             }
         }

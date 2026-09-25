@@ -1,9 +1,8 @@
 <?php
 
-namespace PushNotifications\Command;
+namespace WebApp\Command;
 
 use Concrete\Core\Foundation\Command\Command;
-use WebApp\Command\SendScheduledNotificationCommandHandler;
 
 class SendScheduledNotificationCommand extends Command
 {

@@ -7,7 +7,7 @@ use Concrete\Package\WebApp\Controller\Search\ScheduledNotification\ScheduledNot
 
 class Scheduled extends DashboardPageController
 {
-    public function view()
+    public function view(): void
     {
         $reset = false;
 
