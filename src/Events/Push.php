@@ -71,7 +71,7 @@ class Push
 
         $auth = [
             'VAPID' => [
-                'subject' => 'mailto:lee@limegreentangerine.co.uk',
+                'subject' => 'mailto:devrow@limegreentangerine.co.uk',
                 'publicKey' => $vapidKeys->getPublicKey(),
                 'privateKey' => $vapidKeys->getPrivateKey(),
             ],

@@ -122,11 +122,11 @@ class Setup
             ob_end_clean();
 
             $html = Core::make('helper/html');
-            $swPath = '/web-app-service-worker.js';
-            $controller = self::$page->getController();
+            $swPath = 'web-app-service-worker.js';
+            $controller = self::$page->getPageController();
             $controller->addHeaderItem($html->css('push.css', 'web_app'));
-            $controller->addFooterItem('<script type="text/x-template" id="push-subscribe-notification" data-sw="' . $swPath . '" data-key="' . $currentKeys->getPublicKey() . '">' . $subscribeNotification . '</script>');
-            $controller->addFooterItem('<script src="' . Core::make('autocache')->autocache('', 'sw.js') . '"></script>');
+            $controller->addFooterItem('<script type="text/x-template" id="push-subscribe-notification" data-sw="/' . $swPath . '" data-key="' . $currentKeys->getPublicKey() . '">' . $subscribeNotification . '</script>');
+            $controller->addFooterItem('<script src="' . Core::make('autocache')->autocache('', $swPath) . '"></script>');
             $controller->addFooterItem($html->javascript('push.js', 'web_app'));
         }
     }

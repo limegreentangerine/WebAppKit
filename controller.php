@@ -2,20 +2,20 @@
 
 namespace Concrete\Package\WebApp;
 
+use ClassKit\Package\PackageController;
+use ClassKit\Package\Traits\PageTrait;
+use Concrete\Core\Entity\Package;
+use Concrete\Core\Package\PackageService;
+use Concrete\Core\Support\Facade\Events;
 use Core;
-use Route;
-use Events;
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
+use Route;
+use Symfony\Component\Process\Process;
+use WebApp\Entity\ScheduledNotification;
 use WebApp\Events\Push;
 use WebApp\Events\Setup;
-use Concrete\Core\Entity\Package;
 use WebApp\Log\PushNotificationLog;
-use ClassKit\Package\Traits\PageTrait;
-use Symfony\Component\Process\Process;
-use ClassKit\Package\PackageController;
-use Doctrine\ORM\EntityManagerInterface;
-use WebApp\Entity\ScheduledNotification;
-use Concrete\Core\Package\PackageService;
 
 class Controller extends PackageController
 {
@@ -148,9 +148,9 @@ class Controller extends PackageController
 
     public function registerRoutes(): void
     {
-        Route::register('/push/subscribe', '\PushNotifications\Events\Subscription::subscribe');
-        Route::register('/push/unsubscribe', '\PushNotifications\Events\Subscription::unsubscribe');
-        Route::register('/push/broadcast', '\PushNotifications\Events\Push::broadcast');
+        Route::register('/push/subscribe', '\WebApp\Events\Subscription::subscribe');
+        Route::register('/push/unsubscribe', '\WebApp\Events\Subscription::unsubscribe');
+        Route::register('/push/broadcast', '\WebApp\Events\Push::broadcast');
     }
 
     public function registerEvents(): void
