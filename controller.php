@@ -34,7 +34,7 @@ class Controller extends PackageController
      *
      * @var string
      */
-    protected $pkgVersion = '1.0.0';
+    protected $pkgVersion = '0.0.0';
 
     /**
      * The minimum Concrete version compatible with the package.
@@ -84,7 +84,9 @@ class Controller extends PackageController
      *     'other_package_4' => ['2.0', '2.9'],
      * ]
      */
-    protected $packageDependencies = [];
+    protected $packageDependencies = [
+        'class_kit' => true
+    ];
 
     /**
      * Package class autoloader registrations
