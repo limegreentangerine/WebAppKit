@@ -1,5 +1,6 @@
 <?php defined('C5_EXECUTE') or die('Access Denied.');
-    use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\URL;
+
 ?>
 
 <?php if (isset($v) && isset($token) && isset($view) && $v['id']) { ?>
@@ -49,35 +50,35 @@
         <div class="form-group">
             <?php
                 echo $form->label('title', t('Title'));
-                echo $form->text('title', $v['title'] ?? null);
-            ?>
+    echo $form->text('title', $v['title'] ?? null);
+    ?>
         </div>
 
         <div class="form-group">
             <?php
-                echo $form->label('description', t('Description'));
-                echo $form->text('description', $v['description'] ?? null);
-            ?>
+        echo $form->label('description', t('Description'));
+    echo $form->text('description', $v['description'] ?? null);
+    ?>
         </div>
 
         <div class="form-group">
             <?php
-                echo $form->label('link', t('Link'));
-                echo $h['ps']->selectPage('link', $v['link'] ?? false);
-            ?>
+        echo $form->label('link', t('Link'));
+    echo $h['ps']->selectPage('link', $v['link'] ?? false);
+    ?>
         </div>
 
         <div class="form-group">
             <?php
-                echo $form->label('sendDate', t('Send Date'));
-                echo $h['dth']->datetime('sendDate', $v['sendDate'] ?? null);
-            ?>
+        echo $form->label('sendDate', t('Send Date'));
+    echo $h['dth']->datetime('sendDate', $v['sendDate'] ?? null);
+    ?>
         </div>
 
         <div class="ccm-dashboard-form-actions-wrapper">
             <div class="ccm-dashboard-form-actions">
                 <a href="<?php echo URL::to('/dashboard/push_notifications/custom'); ?>" class="btn btn-secondary float-start"><?php echo t('Cancel'); ?></a>
-                <?php echo $form->submit('save', (isset($entity)) ? t('Update') : t('Create'), array('class' => 'btn btn-primary float-end')); ?>
+                <?php echo $form->submit('save', (isset($entity)) ? t('Update') : t('Create'), ['class' => 'btn btn-primary float-end']); ?>
             </div>
         </div>
     </form>

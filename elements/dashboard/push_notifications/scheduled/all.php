@@ -6,7 +6,7 @@
         <div class="alert alert-warning">
             <?php echo t('No scheduled notifications found.') ?>
         </div>
-    <?php } else if (isset($result)) { ?>
+    <?php } elseif (isset($result)) { ?>
 
         <div class="table-responsive">
             <table class="ccm-search-results-table">

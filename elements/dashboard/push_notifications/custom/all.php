@@ -1,5 +1,6 @@
 <?php defined('C5_EXECUTE') or die('Access Denied.');
 use Concrete\Core\View\View;
+
 ?>
 
 <div class="ccm-dashboard-content-full">
@@ -8,7 +9,7 @@ use Concrete\Core\View\View;
         <div class="alert alert-warning">
             <?php echo t('No custom notifications found.') ?>
         </div>
-    <?php } else if (isset($result)) { ?>
+    <?php } elseif (isset($result)) { ?>
         <div class="table-responsive">
             <table class="ccm-search-results-table">
                 <thead>

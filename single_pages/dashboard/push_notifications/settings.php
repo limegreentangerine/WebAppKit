@@ -7,15 +7,15 @@
         <div class="form-group">
             <?php
                 echo $form->label('publicKey', t('Public Key'));
-                echo $form->text('publicKey', (isset($vapidKeys)) ? $vapidKeys->getPublicKey() : null, [ 'readonly' => 'readonly', 'disabled' => 'disabled' ]);
-            ?>
+    echo $form->text('publicKey', (isset($vapidKeys)) ? $vapidKeys->getPublicKey() : null, [ 'readonly' => 'readonly', 'disabled' => 'disabled' ]);
+    ?>
         </div>
 
         <div class="form-group">
             <?php
-                echo $form->label('privateKey', t('Private Key'));
-                echo $form->password('privateKey', (isset($vapidKeys)) ? $vapidKeys->getPrivateKey() : null, [ 'readonly' => 'readonly', 'disabled' => 'disabled' ]);
-            ?>
+        echo $form->label('privateKey', t('Private Key'));
+    echo $form->password('privateKey', (isset($vapidKeys)) ? $vapidKeys->getPrivateKey() : null, [ 'readonly' => 'readonly', 'disabled' => 'disabled' ]);
+    ?>
         </div>
     </fieldset>
 
