@@ -10,7 +10,6 @@ use WebApp\Events\Setup;
 use Concrete\Core\Entity\Package;
 use WebApp\Log\PushNotificationLog;
 use ClassKit\Package\Traits\PageTrait;
-use Symfony\Component\Process\Process;
 use ClassKit\Package\PackageController;
 use Concrete\Core\Support\Facade\Events;
 use Doctrine\ORM\EntityManagerInterface;
@@ -85,7 +84,7 @@ class Controller extends PackageController
      * ]
      */
     protected $packageDependencies = [
-        'class_kit' => true
+        'class_kit' => true,
     ];
 
     /**
@@ -113,18 +112,16 @@ class Controller extends PackageController
 
     protected function installServiceWorker(): void
     {
-        $command = DIR_BASE . '/vendor/bin/install-service-worker';
+        $command = './vendor/bin/install-service-worker';
 
         if (!is_file($command)) {
             throw new \RuntimeException('The WebAppKit service-worker Composer command was not found: ' . $command);
         }
 
-        $process = new Process([$command], DIR_BASE);
-        $process->run();
+        exec(escapeshellarg($command) . ' 2>&1', $output, $exitCode);
 
-        if (!$process->isSuccessful()) {
-            $output = trim($process->getErrorOutput() . PHP_EOL . $process->getOutput());
-            throw new \RuntimeException('Unable to install the WebAppKit service worker.' . ($output !== '' ? ' ' . $output : ''));
+        if ($exitCode !== 0) {
+            throw new \RuntimeException('Unable to install the WebAppKit service worker.' . ($output !== [] ? ' ' . implode(PHP_EOL, $output) : ''));
         }
     }
 

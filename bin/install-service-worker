@@ -14,7 +14,7 @@ $packageDirectory = dirname(__DIR__);
 $source = $packageDirectory . '/resources/' . $filename;
 
 $projectRoot = dirname($_composer_autoload_path);
-$destination = $projectRoot . '/../' . $filename;
+$destination = $projectRoot . '/../public/' . $filename;
 
 if (!is_dir($source)) {
     fwrite(STDERR, "Source file does not exist: {$source}\n");
