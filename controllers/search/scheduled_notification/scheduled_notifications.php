@@ -18,19 +18,13 @@ class ScheduledNotifications extends AbstractController
 
     protected function getSearchList(): ?SearchList
     {
-        if ($this->searchList == null) {
-            $this->searchList = $this->app->make(SearchList::class, [$this->getStickyRequest()]);
-        }
-
+        $this->searchList = $this->app->make(SearchList::class, [$this->getStickyRequest()]);
         return $this->searchList;
     }
 
     public function getStickyRequest(): ?StickyRequest
     {
-        if ($this->stickyRequest == null) {
-            $this->stickyRequest = new StickyRequest('pn.scheduled');
-        }
-
+        $this->stickyRequest = new StickyRequest('pn.scheduled');
         return $this->stickyRequest;
     }
 

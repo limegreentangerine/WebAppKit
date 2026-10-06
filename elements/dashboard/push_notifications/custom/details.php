@@ -1,7 +1,4 @@
-<?php defined('C5_EXECUTE') or die('Access Denied.');
-use Illuminate\Support\Facades\URL;
-
-?>
+<?php defined('C5_EXECUTE') or die('Access Denied.'); ?>
 
 <?php if (isset($v) && isset($token) && isset($view) && $v['id']) { ?>
     <div class="ccm-dashboard-header-buttons">
@@ -35,7 +32,7 @@ use Illuminate\Support\Facades\URL;
         });
         ConcreteEvent.subscribe('AjaxFormSubmitSuccess', function(e, data) {
             if (data.form === 'delete-form') {
-                window.location.href = <?php echo json_encode((string) URL::to('/dashboard/push_notifications/custom')); ?>;
+                window.location.href = <?php echo json_encode((string) \URL::to('/dashboard/push_notifications/custom')); ?>;
             }
         });
     });
@@ -77,7 +74,7 @@ use Illuminate\Support\Facades\URL;
 
         <div class="ccm-dashboard-form-actions-wrapper">
             <div class="ccm-dashboard-form-actions">
-                <a href="<?php echo URL::to('/dashboard/push_notifications/custom'); ?>" class="btn btn-secondary float-start"><?php echo t('Cancel'); ?></a>
+                <a href="<?php echo \URL::to('/dashboard/push_notifications/custom'); ?>" class="btn btn-secondary float-start"><?php echo t('Cancel'); ?></a>
                 <?php echo $form->submit('save', (isset($entity)) ? t('Update') : t('Create'), ['class' => 'btn btn-primary float-end']); ?>
             </div>
         </div>
