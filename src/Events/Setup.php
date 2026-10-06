@@ -66,41 +66,33 @@ class Setup
         self::$view->addHeaderItem('<meta name="apple-mobile-web-app-capable" content="yes" />'); // ios
         // self::$view->addHeaderItem('<meta name="apple-mobile-web-app-status-bar-style" content="default" />'); //TODO: a bit buggy in modern ios
 
-        foreach (self::$config->get('web_app.launchscreens') as $size => $fID) {
-            if ($fID > 0) {
-                $file = File::getByID($fID);
-                if ($file) {
-                    $version = $file->getApprovedVersion();
-                    $sizeArray = explode('x', $size);
-                    $width = $sizeArray[0];
+        foreach (self::$config->get('web_app.launchscreens') as $width => $path) {
+            switch ($width) {
+                case '640':
+                    $mediaString = '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)';
+                    break;
+                case '750':
+                    $mediaString = '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)';
+                    break;
+                case '1242':
+                    $mediaString = '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)';
+                    break;
+                case '1125':
+                    $mediaString = '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)';
+                    break;
+                case '1536':
+                    $mediaString = '(min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
+                    break;
+                case '1668':
+                    $mediaString = '(min-device-width: 834px) and (max-device-width: 834px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
+                    break;
+                case '2048':
+                    $mediaString = '(min-device-width: 1024px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
+                    break;
+            }
 
-                    switch ($width) {
-                        case '640':
-                            $mediaString = '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)';
-                            // no break
-                        case '750':
-                            $mediaString = '(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)';
-                            // no break
-                        case '1242':
-                            $mediaString = '(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)';
-                            // no break
-                        case '1125':
-                            $mediaString = '(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)';
-                            // no break
-                        case '1536':
-                            $mediaString = '(min-device-width: 768px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
-                            // no break
-                        case '1668':
-                            $mediaString = '(min-device-width: 834px) and (max-device-width: 834px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
-                            // no break
-                        case '2048':
-                            $mediaString = '(min-device-width: 1024px) and (max-device-width: 1024px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait)';
-                    }
-
-                    if (isset($mediaString)) {
-                        self::$view->addHeaderItem('<link rel="apple-touch-startup-image" href="' . $version->getRelativePath() . '" media="' . $mediaString . '" />');
-                    }
-                }
+            if (isset($mediaString)) {
+                self::$view->addHeaderItem('<link rel="apple-touch-startup-image" href="' . $path . '" media="' . $mediaString . '" />');
             }
         }
     }
@@ -109,7 +101,7 @@ class Setup
     {
         self::init();
 
-        $currentKeys = PushKey::getByID(self::$config->get('push_notifications.key_id'));
+        $currentKeys = PushKey::getByID(self::$config->get('push_notifications.key_id') ?? 1);
 
         if (
             is_object($currentKeys)

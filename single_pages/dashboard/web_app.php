@@ -1,6 +1,6 @@
 <?php defined('C5_EXECUTE') or die('Access Denied.'); ?>
 
-<?php if (isset($form) && isset($token) && isset($view) && isset($form_color) && isset($concrete_asset_library)) { ?>
+<?php if (isset($controller) && isset($form) && isset($token) && isset($view) && isset($form_color) && isset($concrete_asset_library)) { ?>
     <form method="post" action="<?php echo $view->action('save'); ?>">
         <?php echo $token->output('webapp_settings_submit') ?>
 
@@ -38,25 +38,19 @@
             </div>
 
             <div class="form-group">
-                <?php
-                    echo $form->label('categories', t('Categories'));
-    echo $form->text('categories', (isset($formContent) && is_array($formContent['categories'])) ? implode(',', $formContent['categories']) : ((isset($pkg) && is_array($pkg->getFileConfig()->get('web_app.categories'))) ? implode(',', $pkg->getFileConfig()->get('web_app.categories')) : ''));
-    ?>
+                <?php echo $form->label('categories', t('Categories')); ?>
+                <?php echo $form->text('categories', (isset($formContent) && is_array($formContent['categories'])) ? implode(',', $formContent['categories']) : ((isset($pkg) && is_array($pkg->getFileConfig()->get('web_app.categories'))) ? implode(',', $pkg->getFileConfig()->get('web_app.categories')) : '')); ?>
                 <div class="help-block"><?php echo t('Insert as a comma (,) seperated list.'); ?></div>
             </div>
 
             <div class="form-group">
-                <?php
-        echo $form->label('description', t('Description'));
-    echo $form->textarea('description', (isset($formContent)) ? $formContent['description'] : ((isset($pkg)) ? $pkg->getFileConfig()->get('web_app.description') : ''));
-    ?>
+                <?php echo $form->label('description', t('Description')); ?>
+                <?php echo $form->textarea('description', (isset($formContent)) ? $formContent['description'] : ((isset($pkg)) ? $pkg->getFileConfig()->get('web_app.description') : '')); ?>
             </div>
 
             <div class="form-group">
-                <?php
-        echo $form->label('display', t('Display'));
-    echo (string) $form->select('display', $displayMethods ?? [], (isset($formContent)) ? $formContent['display'] : ((isset($pkg)) ? $pkg->getFileConfig()->get('web_app.display') : ''));
-    ?>
+                <?php echo $form->label('display', t('Display')); ?>
+                <?php echo (string) $form->select('display', $controller->displayMethods ?? [], (isset($formContent)) ? $formContent['display'] : ((isset($pkg)) ? $pkg->getFileConfig()->get('web_app.display') : '')); ?>
 
                 <div class="help-block">
                     <table class="table table-striped">
@@ -123,43 +117,43 @@
         </fieldset>
 
         <fieldset>
-            <legend><?php echo t('Icons'); ?></legend>
+            <legend><?php echo t('Icon'); ?></legend>
 
             <div class="form-group">
-                <?php echo $form->label('iosHomeFID', t('iPhone Thumbnail')); ?>
+                <?php echo $form->label('iconFile', t('Icon File')); ?>
                 <div class="float-end">
                     <span class="text-muted small"><?php echo t('Required'); ?></span>
                 </div>
-                <?php echo $concrete_asset_library->image('ccm-iphone-file', 'iosHomeFID', t('Choose File'), $iosHome ?? false, ['filters' => [['field' => 'extension', 'extension' => 'png']]]); ?>
-                <div class="help-block"><?php echo t('iPhone home screen icons should be 57x57 and be in the .png format with a non transparent background.') ?></div>
-            </div>
+                <?php echo $concrete_asset_library->image('iconFile', 'iconFile', t('Choose File'), $iconFile ?? false, ['filters' => [['field' => 'extension', 'extension' => 'png']]]); ?>
 
-            <?php foreach ($iconDimensions ?? [] as $i) { ?>
-                <div class="form-group">
-                    <?php
-            echo $form->label($i, t('Icon: (' . $i . ')'));
-                echo $concrete_asset_library->image($i, 'icons[' . $i . ']', t('Choose image for ' . $i), (isset($formContent)) ? $formContent['icons'][$i] : ((isset($pkg)) ? $pkg->getFileConfig()->get('web_app.icons.' . $i) : ''));
-                ?>
-                </div>
-            <?php } ?>
+                <?php if (isset($iconFile)) { ?>
+                    <a href="<?php echo URL::to('/dashboard/web_app/generate/icons'); ?>" class="btn btn-sm btn-primary mt-2"><?php echo t('Create all icons'); ?></a>
+                <?php } else { ?>
+                    <div class="help-block"><?php echo t('Upload icon at %s and it will be scaled automatically.', end($controller->iconDimensions)) ?></div>
+                <?php } ?>
+            </div>
         </fieldset>
 
         <fieldset>
-            <legend><?php echo t('Launchscreen Images'); ?></legend>
+            <legend><?php echo t('Launchscreen'); ?></legend>
 
-            <?php foreach ($iosLaunchScreenDimensions ?? [] as $ls) { ?>
-                <div class="form-group">
-                    <?php
-                    echo $form->label($ls, t('Screen Size: (' . $ls . ')'));
-                echo $concrete_asset_library->image($ls, 'launchscreen[' . $ls . ']', t('Choose image for ' . $ls), (isset($formContent)) ? $formContent['launchscreen'][$ls] : ((isset($pkg)) ? $pkg->getFileConfig()->get('web_app.launchscreen.' . $ls) : ''));
-                ?>
+            <div class="form-group">
+                <?php echo $form->label('launchFile', t('Launchscreen File')); ?>
+                <div class="float-end">
+                    <span class="text-muted small"><?php echo t('Required'); ?></span>
                 </div>
-            <?php } ?>
-
+                <?php echo $concrete_asset_library->image('launchFile', 'launchFile', t('Choose File'), $launchFile ?? false, ['filters' => [['field' => 'extension', 'extension' => 'png']]]); ?>
+                <?php if (isset($iconFile)) { ?>
+                    <a href="<?php echo URL::to('/dashboard/web_app/generate/launchscreens'); ?>" class="btn btn-sm btn-primary mt-2"><?php echo t('Create all launchscreens'); ?></a>
+                <?php } else { ?>
+                    <div class="help-block"><?php echo t('Upload launchscreen at %s and it will be scaled automatically.', end($controller->iosLaunchScreenDimensions)) ?></div>
+                <?php } ?>
+            </div>
         </fieldset>
 
         <div class="ccm-dashboard-form-actions-wrapper">
             <div class="ccm-dashboard-form-actions">
+                <a href="<?php echo URL::to('/dashboard/web_app/manifest'); ?>" class="btn btn-success float-start"><?php echo t('Generate Manifest'); ?></a>
                 <?php echo $form->submit('save', t('Save Settings'), ['class' => 'btn btn-primary float-end']); ?>
             </div>
         </div>

@@ -228,7 +228,8 @@ class Controller extends PackageController
      */
     public function install()
     {
-        $pkg = parent::install();
+        parent::install();
+        $pkg = Core::make(PackageService::class)->getByHandle($this->pkgHandle);
         $this->installDatabase();
         $this->installOrUpgrade($pkg);
     }

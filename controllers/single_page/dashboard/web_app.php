@@ -2,14 +2,14 @@
 
 namespace Concrete\Package\WebApp\Controller\SinglePage\Dashboard;
 
+use Concrete\Core\Config\Repository\Liaison;
+use Concrete\Core\Error\UserMessageException;
+use Concrete\Core\Package\Package;
+use Concrete\Core\Package\PackageService;
+use Concrete\Core\Page\Controller\DashboardPageController;
 use Core;
 use File;
-use Concrete\Core\Package\Package;
-use Concrete\Core\Site\Config\Liaison;
-use Concrete\Core\Package\PackageService;
-use Concrete\Core\Entity\File\File as FileEntity;
-use Concrete\Core\Utility\Service\Validation\Numbers;
-use Concrete\Core\Page\Controller\DashboardPageController;
+use Symfony\Component\HttpFoundation\Response;
 
 class WebApp extends DashboardPageController
 {
@@ -19,10 +19,14 @@ class WebApp extends DashboardPageController
         'concrete/asset_library',
     ];
 
+    protected Liaison $config;
+
+    protected Package $pkg;
+
     /**
      * @return array<string>
      */
-    protected array $iconDimensions = [
+    public array $iconDimensions = [
         '48x48',
         '72x72',
         '96x96',
@@ -36,7 +40,7 @@ class WebApp extends DashboardPageController
     /**
      * @return array<string>
      */
-    protected array $iosLaunchScreenDimensions = [
+    public array $iosLaunchScreenDimensions = [
         '640x1136',
         '750x1294',
         '1242x2148',
@@ -49,17 +53,13 @@ class WebApp extends DashboardPageController
     /**
      * @return array<string, string>
      */
-    protected array $displayMethods = [
+    public array $displayMethods = [
         '' => 'Choose a display method...',
         'fullscreen' => 'Fullscreen',
         'standalone' => 'Standalone',
         'minimal-ui' => 'Minimal UI',
         'browser' => 'Browser',
     ];
-
-    protected Liaison $siteConfig;
-
-    protected Package $pkg;
 
     protected function validateSubmit(array $post): void
     {
@@ -69,8 +69,12 @@ class WebApp extends DashboardPageController
             $this->error->add('Please enter a name', 'name');
         }
 
-        if ($post['iosHomeFID'] == 0) {
-            $this->error->add('iPhone Bookmark Icon required', 'iosHomeFID');
+        if ($post['iconFile'] == 0) {
+            $this->error->add('Icon required', 'iconFile');
+        }
+
+        if ($post['launchFile'] == 0) {
+            $this->error->add('Launchscreen required', 'launchFile');
         }
     }
 
@@ -86,40 +90,32 @@ class WebApp extends DashboardPageController
         $data = [];
 
         // add settings to data array
-        $config = $this->pkg->getFileConfig();
-        $data['name'] = $config->get('web_app.name');
-        if ($config->get('web_app.short_name') !== null) {
-            $data['short_name'] = $config->get('web_app.short_name');
+        $data['name'] = $this->config->get('web_app.name');
+        if ($this->config->get('web_app.short_name') !== null) {
+            $data['short_name'] = $this->config->get('web_app.short_name');
         }
-        if ($config->get('web_app.categories') !== null) {
-            $data['categories'] = $config->get('web_app.categories');
+        if ($this->config->get('web_app.categories') !== null) {
+            $data['categories'] = $this->config->get('web_app.categories');
         }
-        if ($config->get('web_app.description') !== null) {
-            $data['description'] = $config->get('web_app.description');
+        if ($this->config->get('web_app.description') !== null) {
+            $data['description'] = $this->config->get('web_app.description');
         }
-        if ($config->get('web_app.display') !== null) {
-            $data['display'] = $config->get('web_app.display');
+        if ($this->config->get('web_app.display') !== null) {
+            $data['display'] = $this->config->get('web_app.display');
         }
-        if ($config->get('web_app.theme_color') !== null) {
-            $data['theme_color'] = $config->get('web_app.theme_color');
+        if ($this->config->get('web_app.theme_color') !== null) {
+            $data['theme_color'] = $this->config->get('web_app.theme_color');
         }
-        if ($config->get('web_app.background_color') !== null) {
-            $data['background_color'] = $config->get('web_app.background_color');
+        if ($this->config->get('web_app.background_color') !== null) {
+            $data['background_color'] = $this->config->get('web_app.background_color');
         }
 
-        foreach ($config->get('web_app.icons') as $size => $fID) {
-            if ($fID > 0) {
-                $file = File::getByID($fID);
-                if ($file) {
-                    $version = $file->getApprovedVersion();
-                    $size = ($size == 'default') ? '57x57' : $size;
-                    $data['icons'][] = [
-                        'src' => $version->getRelativePath(),
-                        'type' => $version->getMimeType(),
-                        'sizes' => '57x57',
-                    ];
-                }
-            }
+        foreach ($this->config->get('web_app.icons') as $size => $path) {
+            $data['icons'][] = [
+                'src' => $path,
+                'type' => 'image/png',
+                'sizes' => $size
+            ];
         }
 
         // create new manifest and write json encoded data to file
@@ -133,18 +129,15 @@ class WebApp extends DashboardPageController
     {
         parent::on_start();
 
-
-        $this->siteConfig = Core::make('site')->getSite()->getConfigRepository();
-        $fid = (int) $this->siteConfig->get('misc.iphone_home_screen_thumbnail_fid');
-        $file = $this->entityManager->find(FileEntity::class, $fid);
-        $this->set('iosHome', $file ? $file : null);
-
         $this->pkg = Core::make(PackageService::class)->getClass('web_app');
         $this->set('pkg', $this->pkg);
 
-        $this->set('iosLaunchScreenDimensions', $this->iosLaunchScreenDimensions);
-        $this->set('iconDimensions', $this->iconDimensions);
-        $this->set('displayMethod', $this->displayMethods);
+        $this->config = $this->pkg->getFileConfig();;
+        $iconFile = File::getByID($this->config->get('web_app.iconFile'));
+        $launchFile = File::getByID($this->config->get('web_app.launchFile'));
+
+        $this->set('iconFile', $iconFile ? $iconFile : null);
+        $this->set('launchFile', $launchFile ? $launchFile : null);
     }
 
     public function save()
@@ -158,50 +151,34 @@ class WebApp extends DashboardPageController
         $this->validateSubmit($post);
 
         if (!$this->error->has()) {
-            // save iphone thumbnail
-            $valn = $this->app->make(Numbers::class);
-            $ios_fid = $post['iosHomeFID'];
-            $this->siteConfig->save('misc.iphone_home_screen_thumbnail_fid', $valn->integer($ios_fid, 1) ? (int) $ios_fid : null);
-
-            // set all package settings
-            $config = $this->pkg->getFileConfig();
-
             // status
-            $config->save('web_app.activate', ($post['activate']) ? true : false);
+            $this->config->save('web_app.activate', ($post['activate']) ? true : false);
 
             // basic
-            $config->save('web_app.name', $post['name']);
+            $this->config->save('web_app.name', $post['name']);
             if ($post['short_name'] !== '') {
-                $config->save('web_app.short_name', $post['short_name']);
+                $this->config->save('web_app.short_name', $post['short_name']);
             }
             if ($post['categories'] !== '') {
-                $config->save('web_app.categories', explode(',', $post['categories']));
+                $this->config->save('web_app.categories', explode(',', $post['categories']));
             }
             if ($post['description'] !== '') {
-                $config->save('web_app.description', $post['description']);
+                $this->config->save('web_app.description', $post['description']);
             }
             if ($post['display'] !== '') {
-                $config->save('web_app.display', $post['display']);
+                $this->config->save('web_app.display', $post['display']);
             }
 
             // colours
             if ($post['theme_color'] !== '') {
-                $config->save('web_app.theme_color', $post['theme_color']);
+                $this->config->save('web_app.theme_color', $post['theme_color']);
             }
             if ($post['background_color'] !== '') {
-                $config->save('web_app.background_color', $post['background_color']);
+                $this->config->save('web_app.background_color', $post['background_color']);
             }
 
-            // icons
-            $config->save('web_app.icons.default', (int) $post['iosHomeFID']);
-            foreach ($post['icons'] as $size => $fID) {
-                $config->save('web_app.icons.' . $size, (int) $fID);
-            }
-
-            // launchscreen images
-            foreach ($post['launchscreen'] as $size => $fID) {
-                $config->save('web_app.launchscreens.' . $size, (int) $fID);
-            }
+            $this->config->save('web_app.iconFile', $post['iconFile']);
+            $this->config->save('web_app.launchFile', $post['launchFile']);
 
             $this->generateSiteManifest();
 
@@ -210,6 +187,93 @@ class WebApp extends DashboardPageController
         }
         $this->set('errors', $this->error);
         $this->set('formContent', $post);
+    }
 
+    public function generate(string $type): ?Response
+    {
+        $ih = Core::make('helper/image');
+        $ih->setThumbnailsFormat('png');
+
+        match ($type) {
+            'icons' => (function () use ($ih) {
+                $iconPaths = [];
+                $iconFile = File::getByID($this->config->get('web_app.iconFile'));
+                if (!$iconFile) {
+                    $this->error->add('Icon not found');
+                    return;
+                }
+
+                $validationSizes = explode('x', end($this->iconDimensions));
+                $validationWidth = $validationSizes[0];
+                $validationHeight = $validationSizes[1];
+
+                if ((int) $validationWidth > (int) $iconFile->getAttribute('width')) {
+                    $this->error->add(t('Base icon not at least %s in width', $validationWidth));
+                    return;
+                }
+
+                if ((int) $validationHeight > (int) $iconFile->getAttribute('height')) {
+                    $this->error->add(t('Base icon not at least %s in height', $validationHeight));
+                    return;
+                }
+
+                foreach ($this->iconDimensions as $size) {
+                    $sizes = explode('x', $size);
+                    $generatedThumbnail = $ih->processThumbnail(false, $iconFile, $sizes[0], $sizes[1], false);
+                    $iconPaths[$size] = $generatedThumbnail->src;
+                }
+
+                $this->config->save('web_app.icons', $iconPaths);
+                return;
+            })(),
+            'launchscreens' => (function () use ($ih) {
+                $launchscreenPaths = [];
+                $launchFile = File::getByID($this->config->get('web_app.launchFile'));
+                if (!$launchFile) {
+                    $this->error->add('Launchscreen not found');
+                    return;
+                }
+
+                $validationSizes = explode('x', end($this->iosLaunchScreenDimensions));
+                $validationWidth = $validationSizes[0];
+                $validationHeight = $validationSizes[1];
+
+                if ((int) $validationWidth > (int) $launchFile->getAttribute('width')) {
+                    $this->error->add(t('Base launchscreen not at least %s in width', $validationWidth));
+                    return;
+                }
+
+                if ((int) $validationHeight > (int) $launchFile->getAttribute('height')) {
+                    $this->error->add(t('Base launchscreen not at least %s in height', $validationHeight));
+                    return;
+                }
+
+                foreach ($this->iosLaunchScreenDimensions as $size) {
+                    $sizes = explode('x', $size);
+                    $generatedThumbnail = $ih->processThumbnail(false, $launchFile, $sizes[0], $sizes[1], false);
+                    $launchscreenPaths[$sizes[0]] = $generatedThumbnail->src;
+                }
+
+                $this->config->save('web_app.launchscreens', $launchscreenPaths);
+                return;
+            })(),
+            default => (function() {
+                $this->error->add(t('Invalid image generation type.'));
+                return;
+            })()
+        };
+
+        if (!$this->error->has()) {
+            return $this->buildRedirect('/dashboard/web_app');
+        }
+
+        $this->set('errors', $this->error);
+        return null;
+    }
+
+    public function manifest()
+    {
+        $this->generateSiteManifest();
+        return $this->buildRedirect('/dashboard/web_app');
     }
 }
