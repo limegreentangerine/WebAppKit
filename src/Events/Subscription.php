@@ -35,6 +35,10 @@ class Subscription
 
             $success = true;
             $message = t('Client subscribed successfully');
+
+            Core::make(PushNotificationLog::class)
+                ->getLogger()
+                ->addDebug(t('%s subscribed', $body->endpoint));
         }
 
         $response['success'] = $success;
