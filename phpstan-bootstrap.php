@@ -21,6 +21,10 @@ if (!class_exists('Core', false)) {
     }
 }
 
+if (!class_exists('URL', false)) {
+    class_alias(Concrete\Core\Support\Facade\Url::class, 'URL');
+}
+
 if (!class_exists('File', false)) {
     class_alias(Concrete\Core\File\File::class, 'File');
 }

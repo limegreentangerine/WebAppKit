@@ -2,7 +2,6 @@ name: CodeStandards
 
 on:
   push:
-  pull_request:
 
 permissions:
   contents: read
@@ -35,4 +34,4 @@ jobs:
         run: composer format:check
 
       - name: Check types
-        run: composer check
+        run: composer typecheck

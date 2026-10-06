@@ -3,7 +3,6 @@
 namespace WebApp\Events;
 
 use Core;
-use File;
 use WebApp\Entity\PushKey;
 use Concrete\Core\Page\Page;
 use Concrete\Core\View\View;

@@ -2,14 +2,14 @@
 
 namespace Concrete\Package\WebApp\Controller\SinglePage\Dashboard;
 
-use Concrete\Core\Config\Repository\Liaison;
-use Concrete\Core\Error\UserMessageException;
-use Concrete\Core\Package\Package;
-use Concrete\Core\Package\PackageService;
-use Concrete\Core\Page\Controller\DashboardPageController;
 use Core;
 use File;
+use Concrete\Core\Package\Package;
+use Concrete\Core\Package\PackageService;
+use Concrete\Core\Config\Repository\Liaison;
+use Concrete\Core\Error\UserMessageException;
 use Symfony\Component\HttpFoundation\Response;
+use Concrete\Core\Page\Controller\DashboardPageController;
 
 class WebApp extends DashboardPageController
 {
@@ -114,7 +114,7 @@ class WebApp extends DashboardPageController
             $data['icons'][] = [
                 'src' => $path,
                 'type' => 'image/png',
-                'sizes' => $size
+                'sizes' => $size,
             ];
         }
 
@@ -132,7 +132,8 @@ class WebApp extends DashboardPageController
         $this->pkg = Core::make(PackageService::class)->getClass('web_app');
         $this->set('pkg', $this->pkg);
 
-        $this->config = $this->pkg->getFileConfig();;
+        $this->config = $this->pkg->getFileConfig();
+        ;
         $iconFile = File::getByID($this->config->get('web_app.iconFile'));
         $launchFile = File::getByID($this->config->get('web_app.launchFile'));
 
@@ -224,7 +225,7 @@ class WebApp extends DashboardPageController
                 }
 
                 $this->config->save('web_app.icons', $iconPaths);
-                return;
+
             })(),
             'launchscreens' => (function () use ($ih) {
                 $launchscreenPaths = [];
@@ -255,11 +256,11 @@ class WebApp extends DashboardPageController
                 }
 
                 $this->config->save('web_app.launchscreens', $launchscreenPaths);
-                return;
+
             })(),
-            default => (function() {
+            default => (function () {
                 $this->error->add(t('Invalid image generation type.'));
-                return;
+
             })()
         };
 
