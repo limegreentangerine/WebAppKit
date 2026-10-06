@@ -43,6 +43,39 @@
         </div>
     <?php } ?>
 
+    <form method="post" class="mb-4" action="<?php echo $view->action('save'); ?>">
+        <?php echo $token->output('push_notification_settings'); ?>
+
+        <fieldset>
+            <legend><?php echo t('Status'); ?></legend>
+
+            <div class="form-group">
+                <div class="form-check">
+                    <input type="checkbox" id="activate" name="activate" class="form-check-input" value="1" <?php echo (isset($formContent) && isset($formContent['activate'])) ? 'checked' : ((isset($config) && $config->get('push_notifications.activate') == true) ? 'checked' : ''); ?> />
+                    <label for="activate" class="form-check-label"><?php echo t('Activate Push Notifications'); ?></label>
+                </div>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend><?php echo t('Subject Line'); ?></legend>
+
+            <div class="form-group">
+                <?php echo $form->label('subject', t('Broadcast subject')); ?>
+                <div class="float-end">
+                    <span class="text-muted small"><?php echo t('Required'); ?></span>
+                </div>
+                <?php echo $form->text('subject', (isset($formContent)) ? $formContent['subject'] : ((isset($config)) ? $config->get('push_notifications.subject') : 'devrow@limegreentangerine.co.uk')); ?>
+                <div class="help-block"><?php echo t('Must be a valid email address.'); ?></div>
+            </div>
+
+        </fieldset>
+
+        <?php echo $form->submit('save', t('Save'), ['class' => 'btn btn-primary']); ?>
+    </form>
+
+    <hr />
+
     <fieldset>
         <legend><?php echo t('VAPID Keys'); ?></legend>
 

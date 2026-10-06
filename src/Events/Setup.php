@@ -104,6 +104,7 @@ class Setup
 
         if (
             is_object($currentKeys)
+            && self::$config->get('push_notifications.activate')
             && !self::$page->isAdminArea()
             && (self::$page->getCollectionHandle() !== 'login' && self::$page->getCollectionHandle() !== 'register')
         ) {

@@ -38,6 +38,13 @@ class Push
         return $vapidKeys;
     }
 
+    protected function getSubject()
+    {
+        $pkg = Core::make(PackageService::class)->getByHandle('web_app');
+        $config = $pkg->getFileConfig();
+        return $config->get('push_notifications.subject');
+    }
+
     public function broadcast()
     {
         $method = $_SERVER['REQUEST_METHOD'];
@@ -71,7 +78,7 @@ class Push
 
         $auth = [
             'VAPID' => [
-                'subject' => 'mailto:devrow@limegreentangerine.co.uk',
+                'subject' => 'mailto:' . $this->getSubject() ?? 'devrow@limegreentangerine.co.uk',
                 'publicKey' => $vapidKeys->getPublicKey(),
                 'privateKey' => $vapidKeys->getPrivateKey(),
             ],
@@ -163,70 +170,6 @@ class Push
     }
 
     /**
-     * Send Push Notification for Pre Game Information
-     *
-     * @param string $title
-     * @param string $description
-     * @param string $url
-     */
-    public static function sendPreGameNotification($title, $description, $url)
-    {
-        $payload = [
-            'topic' => t('PreGame'),
-            'title' => $title,
-            'body' => $description,
-            'data' => [
-                'link_url' => $url,
-            ],
-        ];
-
-        if ($icon = self::getIcon()) {
-            $payload['icon'] = $icon;
-        }
-
-        Core::make(PushNotificationLog::class)
-            ->getLogger()
-            ->addDebug(json_encode($payload));
-
-        $response = self::makeRequest('/push/broadcast', $payload);
-        Core::make(PushNotificationLog::class)
-            ->getLogger()
-            ->addDebug(json_encode($response->getBody()));
-    }
-
-    /**
-     * Send Push Notification for Game Report
-     *
-     * @param string $title
-     * @param string $description
-     * @param string $url
-     */
-    public static function sendGameReportNotification($title, $description, $url)
-    {
-        $payload = [
-            'topic' => t('GameReport'),
-            'title' => $title,
-            'body' => $description,
-            'data' => [
-                'link_url' => $url,
-            ],
-        ];
-
-        if ($icon = self::getIcon()) {
-            $payload['icon'] = $icon;
-        }
-
-        Core::make(PushNotificationLog::class)
-            ->getLogger()
-            ->addDebug(json_encode($payload));
-
-        $response = self::makeRequest('/push/broadcast', $payload);
-        Core::make(PushNotificationLog::class)
-            ->getLogger()
-            ->addDebug(json_encode($response->getBody()));
-    }
-
-    /**
      * Send Custom Notification
      *
      * @param CustomNotification $notification
@@ -246,14 +189,7 @@ class Push
             $payload['icon'] = $icon;
         }
 
-        Core::make(PushNotificationLog::class)
-            ->getLogger()
-            ->addDebug(json_encode($payload));
-
-        $response = self::makeRequest('/push/broadcast', $payload);
-        Core::make(PushNotificationLog::class)
-            ->getLogger()
-            ->addDebug(json_encode($response->getBody()));
+        self::makeRequest('/push/broadcast', $payload);
     }
 
     /**
