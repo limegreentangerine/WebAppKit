@@ -119,7 +119,7 @@ class WebApp extends DashboardPageController
         }
 
         // create new manifest and write json encoded data to file
-        $manifest = fopen($fileName, 'w') or die('Unable to open file!');
+        $manifest = fopen($fileName, 'w') or throw new UserMessageException('Unable to open manifest file!');
         $encodedData = str_replace('\/', '/', json_encode($data)); // str_replace to remove escaped url slashes
         fwrite($manifest, $encodedData);
         fclose($manifest);
@@ -264,6 +264,7 @@ class WebApp extends DashboardPageController
         };
 
         if (!$this->error->has()) {
+            $this->flash('success', t('%s generated successfully', ucfirst($type)));
             return $this->buildRedirect('/dashboard/web_app');
         }
 
@@ -274,6 +275,7 @@ class WebApp extends DashboardPageController
     public function manifest()
     {
         $this->generateSiteManifest();
+        $this->flash('success', t('/site.webmanifest file created'));
         return $this->buildRedirect('/dashboard/web_app');
     }
 }
