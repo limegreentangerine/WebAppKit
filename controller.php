@@ -137,6 +137,7 @@ class Controller extends PackageController
         $this->addSinglePage('/dashboard/push_notifications', $pkg, t('Push Notifications'));
         $this->addSinglePage('/dashboard/push_notifications/custom', $pkg, t('Custom Notifications'));
         $this->addSinglePage('/dashboard/push_notifications/scheduled', $pkg, t('Scheduled Notifications'));
+        $this->addSinglePage('/dashboard/push_notifications/subscribers', $pkg, t('Subscribers'));
         $this->addSinglePage('/dashboard/push_notifications/settings', $pkg, t('Settings'));
 
         // install tasks

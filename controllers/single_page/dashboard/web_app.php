@@ -10,6 +10,8 @@ use Concrete\Core\Config\Repository\Liaison;
 use Concrete\Core\Error\UserMessageException;
 use Symfony\Component\HttpFoundation\Response;
 use Concrete\Core\Page\Controller\DashboardPageController;
+use WebApp\Images\Icons;
+use WebApp\Images\LaunchScreens;
 
 class WebApp extends DashboardPageController
 {
@@ -22,33 +24,6 @@ class WebApp extends DashboardPageController
     protected Liaison $config;
 
     protected Package $pkg;
-
-    /**
-     * @return array<string>
-     */
-    public array $iconDimensions = [
-        '48x48',
-        '72x72',
-        '96x96',
-        '144x144',
-        '168x168',
-        '192x192',
-        '256x256',
-        '512x512',
-    ];
-
-    /**
-     * @return array<string>
-     */
-    public array $iosLaunchScreenDimensions = [
-        '640x1136',
-        '750x1294',
-        '1242x2148',
-        '1125x2436',
-        '1536x2048',
-        '1668x2224',
-        '2048x2732',
-    ];
 
     /**
      * @return array<string, string>
@@ -204,7 +179,9 @@ class WebApp extends DashboardPageController
                     return;
                 }
 
-                $validationSizes = explode('x', end($this->iconDimensions));
+                $iconDimensions = Icons::getSizes();
+                $validationSizes = Icons::getValidationSize();
+
                 $validationWidth = $validationSizes[0];
                 $validationHeight = $validationSizes[1];
 
@@ -218,9 +195,9 @@ class WebApp extends DashboardPageController
                     return;
                 }
 
-                foreach ($this->iconDimensions as $size) {
+                foreach ($iconDimensions as $size) {
                     $sizes = explode('x', $size);
-                    $generatedThumbnail = $ih->processThumbnail(false, $iconFile, $sizes[0], $sizes[1], false);
+                    $generatedThumbnail = $ih->processThumbnail(false, $iconFile, $sizes[0], $sizes[1], true);
                     $iconPaths[$size] = $generatedThumbnail->src;
                 }
 
@@ -235,7 +212,9 @@ class WebApp extends DashboardPageController
                     return;
                 }
 
-                $validationSizes = explode('x', end($this->iosLaunchScreenDimensions));
+                $iosLaunchScreenDimensions = LaunchScreens::getSizes();
+                $validationSizes = LaunchScreens::getValidationSize();
+
                 $validationWidth = $validationSizes[0];
                 $validationHeight = $validationSizes[1];
 
@@ -249,9 +228,9 @@ class WebApp extends DashboardPageController
                     return;
                 }
 
-                foreach ($this->iosLaunchScreenDimensions as $size) {
+                foreach ($iosLaunchScreenDimensions as $size) {
                     $sizes = explode('x', $size);
-                    $generatedThumbnail = $ih->processThumbnail(false, $launchFile, $sizes[0], $sizes[1], false);
+                    $generatedThumbnail = $ih->processThumbnail(false, $launchFile, $sizes[0], $sizes[1], true);
                     $launchscreenPaths[$sizes[0]] = $generatedThumbnail->src;
                 }
 
