@@ -269,8 +269,6 @@ class Push
         // objects
         $version = $event->getCollectionVersionObject();
         $page = Page::getByID($version->getCollectionID());
-        $now = new DateTime();
-        $publishDate = new DateTime($version->getPublishDate());
 
         if ($page instanceof Page && !$page->isError()) {
             $pageType = $page->getPageTypeObject();
@@ -286,13 +284,20 @@ class Push
                     $logger->addDebug(json_encode([ 'isMostRecentVersion' => $isMostRecentVersion ]));
 
                     if ($isMostRecentVersion) {
-                        if ($publishDate->format('U') > $now->format('U')) {
+                        $now = new DateTime();
+                        $publicationDate = new DateTime($version->getPublishDate());
+                        $publicDate = new DateTime($page->getCollectionDatePublic());
+
+                        // check which date is in the future so we don't actually push a notification too early
+                        $notificationDate = ($publicationDate->format('U') > $publicDate->format('U')) ? $publicationDate : $publicDate;
+
+                        if ($notificationDate->format('U') > $now->format('U')) {
                             if ($notification) {
                                 /**
                                  * If there is already a notification scheduled
                                  */
                                 $logger->addDebug(t('Updated scheduled notification for %s', $page->getCollectionName()));
-                                $notification->setSendDate($publishDate);
+                                $notification->setSendDate($notificationDate);
                             } else {
                                 /**
                                  * No existing notifications and pages public date is in the future, schedule it
@@ -301,7 +306,7 @@ class Push
                                 $notification = new ScheduledNotification();
                                 $notification->setType($pageType->getPageTypeID());
                                 $notification->setReferenceId($page->getCollectionID());
-                                $notification->setSendDate($publishDate);
+                                $notification->setSendDate($notificationDate);
                             }
 
                             $em->persist($notification);
