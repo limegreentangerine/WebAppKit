@@ -1,6 +1,6 @@
 <?php
 
-namespace WebApp\Events;
+namespace WebApp\Response;
 
 class PushNotificationResponse
 {

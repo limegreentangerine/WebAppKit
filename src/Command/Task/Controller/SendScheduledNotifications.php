@@ -31,7 +31,7 @@ class SendScheduledNotifications extends AbstractController
         $now = new DateTime();
         $snl = new ScheduledNotificationList();
         $snl->filterByDate($now);
-        $notifications = $snl->get();
+        $notifications = $snl->getResults();
 
         foreach ($notifications as $n) {
             $batch->add(new SendScheduledNotificationCommand($n->getID(), $n->getType(), $n->getReferenceId()));
@@ -39,7 +39,7 @@ class SendScheduledNotifications extends AbstractController
 
         $cnl = new CustomNotificationList();
         $cnl->filterByDate($now);
-        $custom = $cnl->get();
+        $custom = $cnl->getResults();
 
         foreach ($custom as $c) {
             $batch->add(new SendScheduledNotificationCommand($c->getID(), 'custom', $c->getID()));

@@ -399,16 +399,16 @@
         },
         {
             "name": "limegreentangerine/class_kit",
-            "version": "1.0.4",
+            "version": "1.0.9",
             "source": {
                 "type": "git",
                 "url": "https://github.com/limegreentangerine/ClassKit.git",
-                "reference": "d3316cb3862016445a3525a21081133addbcfd62"
+                "reference": "0cac24fe4ee1c08c7280a6524e55a810c7d339b4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/limegreentangerine/ClassKit/zipball/d3316cb3862016445a3525a21081133addbcfd62",
-                "reference": "d3316cb3862016445a3525a21081133addbcfd62",
+                "url": "https://api.github.com/repos/limegreentangerine/ClassKit/zipball/0cac24fe4ee1c08c7280a6524e55a810c7d339b4",
+                "reference": "0cac24fe4ee1c08c7280a6524e55a810c7d339b4",
                 "shasum": ""
             },
             "require-dev": {
@@ -440,9 +440,9 @@
             "description": "Collection of helper classes for LGT packages.",
             "support": {
                 "issues": "https://github.com/limegreentangerine/ClassKit/issues",
-                "source": "https://github.com/limegreentangerine/ClassKit/tree/1.0.4"
+                "source": "https://github.com/limegreentangerine/ClassKit/tree/1.0.9"
             },
-            "time": "2026-09-24T12:59:13+00:00"
+            "time": "2026-10-07T09:13:24+00:00"
         },
         {
             "name": "minishlink/web-push",

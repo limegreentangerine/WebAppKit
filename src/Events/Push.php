@@ -2,23 +2,23 @@
 
 namespace WebApp\Events;
 
-use Core;
-use File;
-use Exception;
-use Monolog\Logger;
-use WebApp\Entity\PushKey;
-use Concrete\Core\Page\Page;
-use GuzzleHttp\TransferStats;
-use Minishlink\WebPush\WebPush;
-use Illuminate\Support\Facades\URL;
-use WebApp\Log\PushNotificationLog;
-use GuzzleHttp\Client as HttpClient;
-use Minishlink\WebPush\Subscription;
-use WebApp\Entity\CustomNotification;
+use ClassKit\Environment\Environment;
 use Concrete\Core\Package\PackageService;
+use Concrete\Core\Page\Page;
+use Core;
+use Exception;
+use File;
+use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\RequestException;
-use Concrete\Core\Support\Facade\Application;
+use Minishlink\WebPush\Subscription;
+use Minishlink\WebPush\WebPush;
+use Monolog\Logger;
+use WebApp\Entity\CustomNotification;
+use WebApp\Entity\PushKey;
 use WebApp\Events\Subscription as WebAppSubscription;
+use WebApp\Log\PushNotificationLog;
+use WebApp\Response\PushNotificationError;
+use WebApp\Response\PushNotificationResponse;
 use WebApp\Search\ItemList\PushSubscription\PushSubscriptions as SubscriptionList;
 
 class Push
@@ -50,6 +50,8 @@ class Push
         $method = $_SERVER['REQUEST_METHOD'];
         $body = json_decode(file_get_contents('php://input'));
 
+        $this->logger->addDebug(json_encode($body));
+
         $response = [
             'method' => $method,
             'request' => json_encode($body),
@@ -60,10 +62,12 @@ class Push
             throw new Exception(t('No VAPID keys'));
         }
 
+        $this->logger->addDebug(json_encode($vapidKeys));
+
         if ($body) {
             $notifications = [];
             $sl = new SubscriptionList();
-            $subscriptions = $sl->get();
+            $subscriptions = $sl->getResults();
 
             if (count($subscriptions) > 0) {
                 foreach ($subscriptions as $sub) {
@@ -130,15 +134,13 @@ class Push
 
     public static function getIcon()
     {
-        $app = Application::getFacadeApplication();
-        $site = $app->make('site')->getSite();
-        $config = $site->getConfigRepository();
-        $appleIconFID = (int) $config->get('misc.iphone_home_screen_thumbnail_fid');
-        $appleIconFile = File::getByID($appleIconFID);
+        $pkg = Core::make(PackageService::class)->getByHandle('web_app');
+        $config = $pkg->getFileConfig();
+        $iconFile = File::getByID($config->get('web_app.iconFile'));
 
-        if ($appleIconFile) {
-            $appleIconFileVersion = $appleIconFile->getApprovedVersion();
-            $appIcon = $appleIconFileVersion->getURL();
+        if ($iconFile) {
+            $iconFileVersion = $iconFile->getApprovedVersion();
+            $appIcon = $iconFileVersion->getURL();
         } else {
             $appIcon = false;
         }
@@ -202,7 +204,7 @@ class Push
     public static function makeRequest(string $apiUrl, array $data = []): PushNotificationResponse
     {
         $client = new HttpClient();
-        $fullUrl = URL::to($apiUrl);
+        $fullUrl = \URL::to($apiUrl);
 
         Core::make(PushNotificationLog::class)
             ->getLogger()
@@ -215,23 +217,24 @@ class Push
                     'Cache-Control' => 'no-cache',
                     'Content-Type' => 'application/json',
                 ],
-                'idn_conversion' => false,
-                'on_stats' => function (TransferStats $stats) use (&$url) {
-                    $url = $stats->getEffectiveUri();
-                },
+                'idn_conversion' => false
             ];
 
             if (!empty($data)) {
                 $options['body'] = json_encode($data);
             }
 
-            $res = $client->request('post', $fullUrl, $options);
+            if (Environment::isLocal()) {
+                $options['verify'] = false;
+
+                Core::make(PushNotificationLog::class)
+                    ->getLogger()
+                    ->addDebug(json_encode($options));
+            }
+
+            $res = $client->request('post', $fullUrl->__toString(), $options);
         } catch (RequestException $e) {
-            $resp = new PushNotificationResponse();
-            $resp->setUrl($fullUrl);
-            $resp->setStatusCode($e->getResponse()->getStatusCode());
-            $resp->setBody($e->getResponse()->getBody());
-            return $resp;
+            throw new PushNotificationError($e->getMessage(), $e->getRequest(), $e->getResponse(), $e->getPrevious(), $e->getHandlerContext());
         }
 
         $resp = new PushNotificationResponse();

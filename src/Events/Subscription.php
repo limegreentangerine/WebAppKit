@@ -29,7 +29,7 @@ class Subscription
             $em = Core::make(EntityManagerInterface::class);
             $subscription = new PushSubscription();
             $subscription->setEndpoint($body->endpoint);
-            $subscription->setSubscription($body);
+            $subscription->setSubscription($response['request']);
             $em->persist($subscription);
             $em->flush();
 

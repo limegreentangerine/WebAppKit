@@ -143,7 +143,26 @@ class Controller extends PackageController
         // install tasks
         $this->installContentFile('tasks.xml');
 
-        $this->installServiceWorker();
+        try {
+            $this->installServiceWorker();
+        } catch (\Throwable $e) {
+            $message = t(
+                'The WebAppKit service worker could not be installed automatically and must be installed manually by running "./vendor/bin/install-service-worker". Details: %s',
+                $e->getMessage()
+            );
+
+            try {
+                Core::make('log')->warning($message);
+            } catch (\Throwable $logError) {
+                // Logging is best effort.
+            }
+
+            try {
+                Core::make('app')->make('session')->getFlashBag()->add('warning', h($message));
+            } catch (\Throwable $flashError) {
+                // Flash messaging is best effort.
+            }
+        }
     }
 
     public function registerRoutes(): void
@@ -221,7 +240,7 @@ class Controller extends PackageController
 
     public function on_start()
     {
-        $this->registerEvents();
+        parent::on_start();
     }
 
     /**

@@ -2,7 +2,7 @@
 <concrete5-cif version="1.0">
 
     <tasks>
-        <task handle="send_scheduled_notifications" package="push_notifications" />
+        <task handle="send_scheduled_notifications" package="web_app" />
     </tasks>
 
     <tasksets>

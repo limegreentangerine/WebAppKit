@@ -45,6 +45,8 @@ window.subscribe = async () => {
 		applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
 	});
 
+	console.log(subscription);
+
 	const response = await fetch('/push/subscribe', {
 		method: 'POST',
 		body: JSON.stringify(subscription),
