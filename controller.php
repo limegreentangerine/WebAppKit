@@ -181,10 +181,10 @@ class Controller extends PackageController
             Push::schedulePublishNotification($event);
         });
 
-        //  Events::getEventDispatcher()->addListener('send_scheduled_news', function ($event) {
-        //     $page = $event->getArgument('page');
-        //     Push::sendNewsNotification($page);
-        // });
+        Events::getEventDispatcher()->addListener('send_sheduled_notification', function ($event) {
+            $notification = $event->getArgument('notification');
+            Push::sendScheduledNotification($notification);
+        });
 
         Events::getEventDispatcher()->addListener('send_custom_notification', function ($event) {
             $notification = $event->getArgument('notification');

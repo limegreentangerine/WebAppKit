@@ -4,10 +4,8 @@ namespace WebApp\Command;
 
 use Core;
 use Events;
-use Concrete\Core\Page\Page;
 use WebApp\Log\PushNotificationLog;
 use WebApp\Entity\CustomNotification;
-use Doctrine\ORM\EntityManagerInterface;
 use WebApp\Entity\ScheduledNotification;
 use Concrete\Core\Package\PackageService;
 use Symfony\Component\EventDispatcher\GenericEvent;
@@ -28,21 +26,24 @@ class SendScheduledNotificationCommandHandler implements OutputAwareInterface
         $config = $pkg->getFileConfig();
         $types = explode(',', $config->get('push_notifications.publish'));
 
-        match ($type) {
-            (in_array($type, $types)) => (function () use ($logger, $command) {
-                // TODO: on publish actions
-            })(),
-            'custom' => (function () use ($logger, $command) {
-                $custom = CustomNotification::getByID($command->getReferenceId());
-                if (is_object($custom)) {
+        match (true) {
+            $type === 'custom' => (function () use ($logger, $command) {
+                $custom = CustomNotification::getByID($command->getReferenceId()); // HACK: use reference ID here so we don't have to build more jobs and classes
+                if ($custom instanceof CustomNotification) {
                     $event = new GenericEvent();
                     $event->setArgument('notification', $custom);
                     Events::dispatch('send_custom_notification', $event);
+                } else {
+                    $logger->addError(t('Custom notification not sent, notification not found (Reference ID: %s)', $command->getReferenceId()));
+                }
+            })(),
+            in_array($type, $types, true) => (function () use ($logger, $command) {
+                $scheduled = ScheduledNotification::getByID($command->getNotificationId());
 
-                    // remove custom notification key to avoid repeats
-                    $em = Core::make(EntityManagerInterface::class);
-                    $em->remove($custom);
-                    $em->flush($custom);
+                if ($scheduled instanceof ScheduledNotification) {
+                    $event = new GenericEvent();
+                    $event->setArgument('notification', $scheduled);
+                    Events::dispatch('send_sheduled_notification', $event);
                 } else {
                     $logger->addError(t('Custom notification not sent, notification not found (Reference ID: %s)', $command->getReferenceId()));
                 }
@@ -51,45 +52,5 @@ class SendScheduledNotificationCommandHandler implements OutputAwareInterface
                 $logger->addDebug(t('Unknown type, notification not sent (Reference ID: %s)', $command->getReferenceId()));
             })()
         };
-
-        // switch ($type) {
-        //     case 'news':
-        //         $page = Page::getByID($command->getReferenceId());
-        //         if (!$page->isError()) {
-        //             // publish event to send notification
-        //             $event = new GenericEvent();
-        //             $event->setArgument('page', $page);
-        //             Events::dispatch('send_scheduled_news', $event);
-
-        //             // remove scheduled notification key to avoid repeats
-        //             $n = ScheduledNotification::getByID($command->getNotificationId());
-        //             if (is_object($n)) {
-        //                 $em = Core::make(EntityManagerInterface::class);
-        //                 $em->remove($n);
-        //                 $em->flush($n);
-        //             } else {
-        //                 $logger->addError(t('News notification not sent, article not found (Reference ID: %s)', $command->getReferenceId()));
-        //             }
-        //         }
-        //         break;
-        //     case 'custom':
-        //         $custom = CustomNotification::getByID($command->getReferenceId());
-        //         if (is_object($custom)) {
-        //             $event = new GenericEvent();
-        //             $event->setArgument('notification', $custom);
-        //             Events::dispatch('send_custom_notification', $event);
-
-        //             // remove custom notification key to avoid repeats
-        //             $em = Core::make(EntityManagerInterface::class);
-        //             $em->remove($custom);
-        //             $em->flush($custom);
-        //         } else {
-        //             $logger->addError(t('Custom notification not sent, notification not found (Reference ID: %s)', $command->getReferenceId()));
-        //         }
-        //         break;
-        //     default:
-        //         $logger->addDebug(t('Unknown type, notification not sent (Reference ID: %s)', $command->getReferenceId()));
-        //         break;
-        // }
     }
 }
