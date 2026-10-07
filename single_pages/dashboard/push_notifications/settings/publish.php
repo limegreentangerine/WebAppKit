@@ -12,7 +12,7 @@
             <?php foreach ($types as $index => $pt) {
                 $pageTypeID = is_object($pt) && method_exists($pt, 'getPageTypeID') ? $pt->getPageTypeID() : $index;
                 $pageTypeName = is_object($pt) && method_exists($pt, 'getPageTypeName') ? $pt->getPageTypeName() : $pt;
-            ?>
+                ?>
                 <div class="form-group">
                     <div class="form-check">
                         <input type="checkbox" id="type__<?php echo $index; ?>" name="types[]" class="form-check-input" value="<?php echo $pageTypeID; ?>" <?php echo ((isset($formContent) && isset($formContent['types'])) && in_array($pageTypeID, $formContent['types'])) ? 'checked' : ((isset($publish) && in_array($pageTypeID, $publish)) ? 'checked' : ''); ?> />

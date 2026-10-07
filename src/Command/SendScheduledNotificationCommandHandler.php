@@ -9,6 +9,7 @@ use WebApp\Log\PushNotificationLog;
 use WebApp\Entity\CustomNotification;
 use Doctrine\ORM\EntityManagerInterface;
 use WebApp\Entity\ScheduledNotification;
+use Concrete\Core\Package\PackageService;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use Concrete\Core\Command\Task\Output\OutputAwareTrait;
 use Concrete\Core\Command\Task\Output\OutputAwareInterface;
@@ -23,8 +24,12 @@ class SendScheduledNotificationCommandHandler implements OutputAwareInterface
         $type = strtolower($command->getType());
         $logger->addDebug($type);
 
+        $pkg = Core::make(PackageService::class)->getByHandle('web_app');
+        $config = $pkg->getFileConfig();
+        $types = explode(',', $config->get('push_notifications.publish'));
+
         match ($type) {
-            'news' => (function () use ($logger, $command) {
+            (in_array($type, $types)) => (function () use ($logger, $command) {
                 // TODO: on publish actions
             })(),
             'custom' => (function () use ($logger, $command) {

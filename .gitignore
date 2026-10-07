@@ -43,3 +43,5 @@ coverage/
 # node
 node_modules/
 node_modules
+
+__IDE_SYMBOLS__.php

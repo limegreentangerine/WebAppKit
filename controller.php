@@ -4,16 +4,12 @@ namespace Concrete\Package\WebApp;
 
 use Core;
 use Route;
-use DateTime;
+use Events;
 use WebApp\Events\Push;
 use WebApp\Events\Setup;
 use Concrete\Core\Entity\Package;
-use WebApp\Log\PushNotificationLog;
 use ClassKit\Package\Traits\PageTrait;
 use ClassKit\Package\PackageController;
-use Concrete\Core\Support\Facade\Events;
-use Doctrine\ORM\EntityManagerInterface;
-use WebApp\Entity\ScheduledNotification;
 use Concrete\Core\Package\PackageService;
 
 class Controller extends PackageController
@@ -169,62 +165,28 @@ class Controller extends PackageController
 
     public function registerRoutes(): void
     {
-        Route::register('/push/subscribe', '\WebApp\Events\Subscription::subscribe');
-        Route::register('/push/unsubscribe', '\WebApp\Events\Subscription::unsubscribe');
-        Route::register('/push/broadcast', '\WebApp\Events\Push::broadcast');
+        Route::post('/push/subscribe', '\WebApp\Events\Subscription::subscribe');
+        Route::get('/push/unsubscribe', '\WebApp\Events\Subscription::unsubscribe');
+        Route::post('/push/broadcast', '\WebApp\Events\Push::broadcast');
     }
 
     public function registerEvents(): void
     {
-        Events::addListener('on_before_render', function () {
+        Events::getEventDispatcher()->addListener('on_before_render', function () {
             Setup::setupWebApp();
             Setup::registerPushAssets();
         });
 
-        Events::addListener('on_page_type_publish', function ($event) {
-            $pageType = $event->getPageTypeObject();
-            $logger = Core::make(PushNotificationLog::class)->getLogger();
-
-            if ($pageType->getPageTypeHandle() === 'news') {
-                $page = $event->getPageObject();
-                $now = new DateTime();
-                $newsDate = $page->getCollectionDatePublicObject();
-
-                $em = Core::make(EntityManagerInterface::class);
-                $scheduledNotification = ScheduledNotification::getByColumnAndValue('referenceId', $page->getCollectionID());
-
-                if ($scheduledNotification) {
-                    if ($newsDate->format('U') > $now->format('U')) {
-                        $logger->addDebug(t('Updated scheduled notification for %s', $page->getCollectionName()));
-                        $scheduledNotification->setSendDate($newsDate);
-                        $em->persist($scheduledNotification);
-                        $em->flush();
-                    } else {
-                        $logger->addDebug(t('Sent scheduled notification for %s', $page->getCollectionName()));
-                        Push::sendNewsNotification($page);
-                    }
-
-                } elseif ($newsDate->format('U') > $now->format('U')) {
-                    $logger->addDebug(t('Scheduled notification for %s', $page->getCollectionName()));
-                    $scheduledNotification = new ScheduledNotification();
-                    $scheduledNotification->setType('News');
-                    $scheduledNotification->setReferenceId($page->getCollectionID());
-                    $scheduledNotification->setSendDate($newsDate);
-                    $em->persist($scheduledNotification);
-                    $em->flush();
-                } else {
-                    $logger->addDebug(t('Sent notification for %s', $page->getCollectionName()));
-                    Push::sendNewsNotification($page);
-                }
-            }
+        Events::getEventDispatcher()->addListener('on_page_version_approve', function ($event) {
+            Push::schedulePublishNotification($event);
         });
 
-        Events::addListener('send_scheduled_news', function ($event) {
-            $page = $event->getArgument('page');
-            Push::sendNewsNotification($page);
-        });
+        //  Events::getEventDispatcher()->addListener('send_scheduled_news', function ($event) {
+        //     $page = $event->getArgument('page');
+        //     Push::sendNewsNotification($page);
+        // });
 
-        Events::addListener('send_custom_notification', function ($event) {
+        Events::getEventDispatcher()->addListener('send_custom_notification', function ($event) {
             $notification = $event->getArgument('notification');
             Push::sendCustomNotification($notification);
         });
@@ -243,6 +205,8 @@ class Controller extends PackageController
     public function on_start()
     {
         parent::on_start();
+        $this->registerRoutes();
+        $this->registerEvents();
     }
 
     /**

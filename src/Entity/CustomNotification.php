@@ -26,7 +26,7 @@ class CustomNotification extends BaseEntity
     protected string $description;
 
     /**
-     * @ORM\Column(type="integer", length=55, unique=false, nullable=false)
+     * @ORM\Column(type="integer", length=55, unique=false, nullable=true)
      */
     protected int $link;
 
@@ -34,6 +34,11 @@ class CustomNotification extends BaseEntity
      * @ORM\Column(type="datetime", nullable=false)
      */
     protected DateTime $sendDate;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    protected DateTime $sentAt;
 
     /**
      * Get the value of title
@@ -122,6 +127,31 @@ class CustomNotification extends BaseEntity
     public function setSendDate(DateTime $sendDate): self
     {
         $this->sendDate = $sendDate;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of sentAt
+     */
+    public function getSentAt(): DateTime
+    {
+        return $this->sentAt;
+    }
+
+    public function getSendAtString(): string
+    {
+        return $this->sentAt->format('d/m/Y H:i');
+    }
+
+    /**
+     * Set the value of sentAt
+     *
+     * @return self
+     */
+    public function setSentAt(DateTime $sentAt): self
+    {
+        $this->sentAt = $sentAt;
 
         return $this;
     }

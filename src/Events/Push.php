@@ -4,6 +4,7 @@ namespace WebApp\Events;
 
 use Core;
 use File;
+use DateTime;
 use Exception;
 use Monolog\Logger;
 use WebApp\Entity\PushKey;
@@ -14,11 +15,15 @@ use GuzzleHttp\Client as HttpClient;
 use Minishlink\WebPush\Subscription;
 use ClassKit\Environment\Environment;
 use WebApp\Entity\CustomNotification;
+use Doctrine\ORM\EntityManagerInterface;
+use WebApp\Entity\ScheduledNotification;
 use Concrete\Core\Package\PackageService;
 use GuzzleHttp\Exception\RequestException;
 use WebApp\Response\PushNotificationError;
 use WebApp\Response\PushNotificationResponse;
+use Concrete\Core\Page\Collection\Version\Event as PageVersionEvent;
 use WebApp\Events\Subscription as WebAppSubscription;
+use Concrete\Core\Entity\Page\Template as PageTemplate;
 use WebApp\Search\ItemList\PushSubscription\PushSubscriptions as SubscriptionList;
 
 class Push
@@ -150,13 +155,11 @@ class Push
 
     /**
      * Send Push Notification for news article publish
-     *
-     * @param Page $page
      */
-    public static function sendNewsNotification($page)
+    public static function sendPageNotification(Page $page)
     {
         $payload = [
-            'topic' => t('News'),
+            'topic' => $page->getPageTypeHandle(),
             'title' => $page->getCollectionName(),
             'body' => $page->getCollectionDescription(),
             'data' => [
@@ -164,19 +167,17 @@ class Push
             ],
         ];
 
-        if ($icon = self::getIcon()) {
+        if ($icon = static::getIcon()) {
             $payload['icon'] = $icon;
         }
 
-        self::makeRequest('/push/broadcast', $payload);
+        static::makeRequest('/push/broadcast', $payload);
     }
 
     /**
      * Send Custom Notification
-     *
-     * @param CustomNotification $notification
      */
-    public static function sendCustomNotification($notification)
+    public static function sendCustomNotification(CustomNotification $notification)
     {
         $payload = [
             'topic' => t('Custom'),
@@ -187,11 +188,22 @@ class Push
             ],
         ];
 
-        if ($icon = self::getIcon()) {
+        if ($icon = static::getIcon()) {
             $payload['icon'] = $icon;
         }
 
-        self::makeRequest('/push/broadcast', $payload);
+        try {
+            static::makeRequest('/push/broadcast', $payload);
+
+            $em = Core::make(EntityManagerInterface::class);
+            $notification->setSentAt(new DateTime());
+            $em->persist($notification);
+            $em->flush();
+        } catch (PushNotificationError $e) {
+            Core::make(PushNotificationLog::class)
+                ->getLogger()
+                ->addDebug(t('(Code: %s) %s', $e->getCode(), $e->getMessage()));
+        }
     }
 
     /**
@@ -243,5 +255,71 @@ class Push
         $resp->setBody($res->getBody());
 
         return $resp;
+    }
+
+    public static function schedulePublishNotification(PageVersionEvent $event)
+    {
+        // helpers
+        $pkg = Core::make(PackageService::class)->getByHandle('web_app');
+        $config = $pkg->getFileConfig();
+        $types = explode(',', $config->get('push_notifications.publish'));
+        $logger = Core::make(PushNotificationLog::class)->getLogger();
+        $em = Core::make(EntityManagerInterface::class);
+
+        // objects
+        $version = $event->getCollectionVersionObject();
+        $page = Page::getByID($version->getCollectionID());
+        $now = new DateTime();
+        $publishDate = new DateTime($version->getPublishDate());
+
+        if ($page instanceof Page && !$page->isError()) {
+            $pageType = $page->getPageTypeObject();
+
+            if (in_array($pageType->getPageTypeID(), $types)) {
+                $pageTemplate = $pageType->getPageTypeDefaultPageTemplateObject();
+
+                if ($page->getPageTemplateHandle() === $pageTemplate->getPageTemplateHandle()) {
+                    $logger->addDebug('Push::schedulePublishNotification() -> page template is the default');
+                    $notification = ScheduledNotification::getByColumnAndValue('referenceId', $version->getCollectionID());
+
+                    $isMostRecentVersion = $version->isMostRecent();
+                    $logger->addDebug(json_encode([ 'isMostRecentVersion' => $isMostRecentVersion ]));
+
+                    if ($isMostRecentVersion) {
+                        if ($publishDate->format('U') > $now->format('U')) {
+                            if ($notification) {
+                                /**
+                                 * If there is already a notification scheduled
+                                 */
+                                $logger->addDebug(t('Updated scheduled notification for %s', $page->getCollectionName()));
+                                $notification->setSendDate($publishDate);
+                            } else {
+                                /**
+                                 * No existing notifications and pages public date is in the future, schedule it
+                                 */
+                                $logger->addDebug(t('New scheduled notification for %s', $page->getCollectionName()));
+                                $notification = new ScheduledNotification();
+                                $notification->setType($pageType->getPageTypeID());
+                                $notification->setReferenceId($page->getCollectionID());
+                                $notification->setSendDate($publishDate);
+                            }
+
+                            $em->persist($notification);
+                            $em->flush();
+                        } else {
+                            /**
+                             * Page date is now or in the past send it now
+                             */
+                            Push::sendPageNotification($page);
+                        }
+                    } else {
+                        $logger->addDebug('Push::schedulePublishNotification() -> page version is not the most recent or a republication, no notification sent or scheduled');
+                        // NOTE: This is a republication of an old page version, for now let's do nothing but it could be useful in the future.
+                    }
+                }
+            } else {
+                $logger->addDebug(t('Push::schedulePublishNotification() -> page type (%s) not cleared for push notifications', $pageType->getPageTypeHandle()));
+            }
+        }
     }
 }

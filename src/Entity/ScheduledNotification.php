@@ -16,9 +16,9 @@ use ClassKit\Entity\Core\BaseEntity;
 class ScheduledNotification extends BaseEntity
 {
     /**
-     * @ORM\Column(type="string", length=255, unique=false, nullable=false)
+     * @ORM\Column(type="integer", length=55, unique=false, nullable=false)
      */
-    protected string $type;
+    protected int $type;
 
     /**
      * @ORM\Column(type="integer", length=55, unique=false, nullable=false)
@@ -29,6 +29,11 @@ class ScheduledNotification extends BaseEntity
      * @ORM\Column(type="datetime", nullable=false)
      */
     protected DateTime $sendDate;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    protected DateTime $sentAt;
 
     /**
      * Get the value of type
@@ -109,5 +114,30 @@ class ScheduledNotification extends BaseEntity
         }
 
         return null;
+    }
+
+    /**
+     * Get the value of sendAt
+     */
+    public function getSendAt(): DateTime
+    {
+        return $this->sentAt;
+    }
+
+    public function getSendAtString(): string
+    {
+        return $this->sentAt->format('d/m/Y H:i');
+    }
+
+    /**
+     * Set the value of sendAt
+     *
+     * @return self
+     */
+    public function setSendAt(DateTime $sentAt): self
+    {
+        $this->sentAt = $sentAt;
+
+        return $this;
     }
 }
