@@ -10,6 +10,7 @@ use Monolog\Logger;
 use WebApp\Entity\PushKey;
 use Concrete\Core\Page\Page;
 use Minishlink\WebPush\WebPush;
+use Concrete\Core\Page\Type\Type;
 use WebApp\Log\PushNotificationLog;
 use GuzzleHttp\Client as HttpClient;
 use Minishlink\WebPush\Subscription;
@@ -23,7 +24,6 @@ use WebApp\Response\PushNotificationError;
 use WebApp\Response\PushNotificationResponse;
 use WebApp\Events\Subscription as WebAppSubscription;
 use Concrete\Core\Page\Collection\Version\Event as PageVersionEvent;
-use PageType;
 use WebApp\Search\ItemList\PushSubscription\PushSubscriptions as SubscriptionList;
 
 class Push
@@ -159,9 +159,9 @@ class Push
     public static function sendScheduledNotification(ScheduledNotification $notification)
     {
         $page = Page::getByID($notification->getReferenceId());
-        $type = PageType::getByID($notification->getType());
+        $type = Type::getByID($notification->getType());
 
-        if ($page && $type) {
+        if (!$page->isError() && $type) {
             $payload = [
                 'topic' => $type->getPageTypeName(),
                 'title' => $page->getCollectionName(),
