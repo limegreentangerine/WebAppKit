@@ -21,9 +21,8 @@ use Concrete\Core\Package\PackageService;
 use GuzzleHttp\Exception\RequestException;
 use WebApp\Response\PushNotificationError;
 use WebApp\Response\PushNotificationResponse;
-use Concrete\Core\Page\Collection\Version\Event as PageVersionEvent;
 use WebApp\Events\Subscription as WebAppSubscription;
-use Concrete\Core\Entity\Page\Template as PageTemplate;
+use Concrete\Core\Page\Collection\Version\Event as PageVersionEvent;
 use WebApp\Search\ItemList\PushSubscription\PushSubscriptions as SubscriptionList;
 
 class Push
@@ -280,10 +279,7 @@ class Push
                     $logger->addDebug('Push::schedulePublishNotification() -> page template is the default');
                     $notification = ScheduledNotification::getByColumnAndValue('referenceId', $version->getCollectionID());
 
-                    $isMostRecentVersion = $version->isMostRecent();
-                    $logger->addDebug(json_encode([ 'isMostRecentVersion' => $isMostRecentVersion ]));
-
-                    if ($isMostRecentVersion) {
+                    if ($version->isMostRecent()) {
                         $now = new DateTime();
                         $publicationDate = new DateTime($version->getPublishDate());
                         $publicDate = new DateTime($page->getCollectionDatePublic());
