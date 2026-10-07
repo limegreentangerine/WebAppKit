@@ -7,4 +7,3 @@ parameters:
     - elements
     - single_pages
     - src
-    - tests
