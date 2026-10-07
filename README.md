@@ -1,13 +1,16 @@
-# Web App
+# WebAppKit
 
-Add installable, standalone web-app support to a Concrete CMS site.
+Add standalone web-app support and push notifications to a Concrete CMS site.
 
-This package adds a **Web App** configuration page to the Concrete CMS dashboard. Administrators can configure the site's web app manifest, icons, display mode, colours, and iOS launch screens. When the feature is enabled, the package:
+WebAppKit adds web-app settings and push-notification management pages to the Concrete CMS dashboard. Administrators can configure the site's web app manifest, icons, display mode, colours, iOS launch screens, push keys, and notification publishing. The package:
 
 - Generates `site.webmanifest` in the site's document root.
 - Adds a manifest link to rendered pages.
 - Adds mobile web-app meta tags.
 - Adds configured iOS startup-image links.
+- Provides push subscription management and custom and scheduled notifications.
+- Sends notifications when configured pages are published.
+- Installs the web push service worker automatically when the package is installed or upgraded.
 
 ## Requirements
 
@@ -26,19 +29,20 @@ The package is also configured as a Composer package (`limegreentangerine/web_ap
 composer require limegreentangerine/web_app
 ```
 
-After copying or installing the package, log in to Concrete CMS and go to **Dashboard → Extend Concrete → Install**. Select **Web App** and install it.
+After copying or installing the package, log in to Concrete CMS and go to **Dashboard → Extend Concrete → Install**. Select **WebAppKit** and install it.
 
-The installer registers the dashboard page at:
+The package registers the following dashboard pages:
 
 ```text
 /dashboard/web_app
+/dashboard/push_notifications
 ```
 
-The package uses the `web_app` handle and can be upgraded from the Concrete CMS package manager after updating its source files.
+The package uses the `web_app` handle and can be upgraded from the Concrete CMS package manager after updating its source files. It requires the `class_kit` package.
 
 ## Configuration
 
-Open **Dashboard → Web App** after installation.
+Open **Dashboard → Web App** after installation to configure the manifest and app appearance.
 
 1. Enable **Make this site web app capable**.
 2. Enter the required **Name**.
@@ -71,7 +75,7 @@ Available display modes are:
 - `minimal-ui`
 - `browser`
 
-If the feature is disabled, the package does not add the manifest or web-app headers to rendered pages. Uninstalling the package removes the generated `site.webmanifest`; uploaded files selected in the dashboard are not deleted.
+If the web-app feature is disabled, the package does not add the manifest or web-app headers to rendered pages. Push notifications are configured separately in the Push Notifications dashboard. If automatic service-worker installation fails, the package logs a warning and shows a dashboard warning; install it manually with `./vendor/bin/install-service-worker` from the Concrete CMS project root. Uninstalling the package removes the generated `site.webmanifest`; uploaded files selected in the dashboard are not deleted.
 
 ## Development
 
@@ -91,7 +95,7 @@ npm install
 
 ### Tests
 
-Run the PHPUnit test suite:
+Run the PHPUnit test suite, including package metadata checks and service-worker installer success and error handling:
 
 ```bash
 composer test
@@ -129,17 +133,18 @@ composer format:js:check
 ## Project structure
 
 ```text
-controller.php                              Package lifecycle and front-end hooks
-controllers/single_page/dashboard/web_app.php  Dashboard settings controller
-single_pages/dashboard/web_app.php          Dashboard settings form
-src/Package/PageTrait.php                    Concrete CMS page helpers
-tests/ControllerTest.php                     PHPUnit tests
-.github/workflows/                           Main and develop branch CI workflows
+controller.php                              Package lifecycle, routes, and event hooks
+controllers/single_page/dashboard/           Dashboard page controllers
+single_pages/dashboard/                     Dashboard page templates
+src/                                        Push, web-app, entity, and search functionality
+bin/install-service-worker                  Composer service-worker installation command
+tests/ControllerTest.php                    PHPUnit controller tests
+.github/workflows/                           CI workflows
 ```
 
 ## Continuous integration
 
-GitHub Actions runs `composer install` and `composer test` on PHP 8.4 for pushes to `main` and `develop`. The `main` workflow also dispatches a downstream package test event after the test job succeeds.
+GitHub Actions runs `composer test` for pull requests. Pushes run `composer format:check` and `composer typecheck`. Both workflows use PHP 8.4.
 
 ## License
 
