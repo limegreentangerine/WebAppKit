@@ -329,7 +329,7 @@ class Push
                             /**
                              * Page date is now or in the past send it now
                              */
-                            Push::sendPageNotification($page);
+                            Push::sendScheduledNotification($notification);
                         }
                     } else {
                         $logger->addDebug('Push::schedulePublishNotification() -> page version is not the most recent or a republication, no notification sent or scheduled');
