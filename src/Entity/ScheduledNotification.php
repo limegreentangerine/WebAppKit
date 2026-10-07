@@ -38,7 +38,7 @@ class ScheduledNotification extends BaseEntity
     /**
      * Get the value of type
      */
-    public function getType(): string
+    public function getType(): int
     {
         return $this->type;
     }
@@ -48,7 +48,7 @@ class ScheduledNotification extends BaseEntity
      *
      * @return self
      */
-    public function setType(string $type): self
+    public function setType(int $type): self
     {
         $this->type = $type;
 
@@ -106,11 +106,9 @@ class ScheduledNotification extends BaseEntity
 
     public function getLinkUrl(): ?string
     {
-        if (strtolower($this->getType()) === 'news') {
-            $page = Page::getByID($this->getReferenceId());
-            if (!$page->isError()) {
-                return $page->getCollectionLink();
-            }
+        $page = Page::getByID($this->getReferenceId());
+        if (!$page->isError()) {
+            return $page->getCollectionLink();
         }
 
         return null;

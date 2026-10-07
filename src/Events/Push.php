@@ -86,7 +86,7 @@ class Push
 
         $auth = [
             'VAPID' => [
-                'subject' => 'mailto:' . $this->getSubject() ?? 'devrow@limegreentangerine.co.uk',
+                'subject' => 'mailto:' . ($this->getSubject() ?? 'devrow@limegreentangerine.co.uk'),
                 'publicKey' => $vapidKeys->getPublicKey(),
                 'privateKey' => $vapidKeys->getPrivateKey(),
             ],
@@ -269,7 +269,7 @@ class Push
         $version = $event->getCollectionVersionObject();
         $page = Page::getByID($version->getCollectionID());
 
-        if ($page instanceof Page && !$page->isError()) {
+        if (!$page->isError()) {
             $pageType = $page->getPageTypeObject();
 
             if (in_array($pageType->getPageTypeID(), $types)) {
@@ -288,7 +288,7 @@ class Push
                         $notificationDate = ($publicationDate->format('U') > $publicDate->format('U')) ? $publicationDate : $publicDate;
 
                         if ($notificationDate->format('U') > $now->format('U')) {
-                            if ($notification) {
+                            if ($notification instanceof ScheduledNotification) {
                                 /**
                                  * If there is already a notification scheduled
                                  */

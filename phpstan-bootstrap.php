@@ -38,3 +38,13 @@ if (!class_exists('Events', false)) {
         }
     }
 }
+
+if (!class_exists('PageType', false)) {
+    class PageType
+    {
+        public static function getList(): array
+        {
+            return [];
+        }
+    }
+}
