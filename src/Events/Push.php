@@ -23,6 +23,7 @@ use WebApp\Response\PushNotificationError;
 use WebApp\Response\PushNotificationResponse;
 use WebApp\Events\Subscription as WebAppSubscription;
 use Concrete\Core\Page\Collection\Version\Event as PageVersionEvent;
+use PageType;
 use WebApp\Search\ItemList\PushSubscription\PushSubscriptions as SubscriptionList;
 
 class Push
@@ -155,22 +156,39 @@ class Push
     /**
      * Send Push Notification for news article publish
      */
-    public static function sendPageNotification(Page $page)
+    public static function sendScheduledNotification(ScheduledNotification $notification)
     {
-        $payload = [
-            'topic' => $page->getPageTypeHandle(),
-            'title' => $page->getCollectionName(),
-            'body' => $page->getCollectionDescription(),
-            'data' => [
-                'link_url' => $page->getCollectionLink(),
-            ],
-        ];
+        $page = Page::getByID($notification->getReferenceId());
+        $type = PageType::getByID($notification->getType());
 
-        if ($icon = static::getIcon()) {
-            $payload['icon'] = $icon;
+        if ($page && $type) {
+            $payload = [
+                'topic' => $type->getPageTypeName(),
+                'title' => $page->getCollectionName(),
+                'body' => $page->getCollectionDescription(),
+                'data' => [
+                    'link_url' => $page->getCollectionLink(),
+                ],
+            ];
+
+            if ($icon = static::getIcon()) {
+                $payload['icon'] = $icon;
+            }
+
+            try {
+                static::makeRequest('/push/broadcast', $payload);
+
+                $em = Core::make(EntityManagerInterface::class);
+                $notification->setSentAt(new DateTime());
+                $em->persist($notification);
+                $em->flush();
+            } catch (PushNotificationError $e) {
+                Core::make(PushNotificationLog::class)
+                    ->getLogger()
+                    ->addDebug(t('(Code: %s) %s', $e->getCode(), $e->getMessage()));
+            }
         }
 
-        static::makeRequest('/push/broadcast', $payload);
     }
 
     /**

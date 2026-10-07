@@ -132,7 +132,7 @@ class ScheduledNotification extends BaseEntity
      *
      * @return self
      */
-    public function setSendAt(DateTime $sentAt): self
+    public function setSentAt(DateTime $sentAt): self
     {
         $this->sentAt = $sentAt;
 
