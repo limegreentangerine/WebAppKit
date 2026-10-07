@@ -4,14 +4,14 @@ namespace Concrete\Package\WebApp\Controller\SinglePage\Dashboard;
 
 use Core;
 use File;
+use WebApp\Images\Icons;
+use WebApp\Images\LaunchScreens;
 use Concrete\Core\Package\Package;
 use Concrete\Core\Package\PackageService;
 use Concrete\Core\Config\Repository\Liaison;
 use Concrete\Core\Error\UserMessageException;
 use Symfony\Component\HttpFoundation\Response;
 use Concrete\Core\Page\Controller\DashboardPageController;
-use WebApp\Images\Icons;
-use WebApp\Images\LaunchScreens;
 
 class WebApp extends DashboardPageController
 {

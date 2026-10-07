@@ -139,6 +139,8 @@ class Controller extends PackageController
         $this->addSinglePage('/dashboard/push_notifications/scheduled', $pkg, t('Scheduled Notifications'));
         $this->addSinglePage('/dashboard/push_notifications/subscribers', $pkg, t('Subscribers'));
         $this->addSinglePage('/dashboard/push_notifications/settings', $pkg, t('Settings'));
+        $this->addSinglePage('/dashboard/push_notifications/settings/keys', $pkg, t('Keys'));
+        $this->addSinglePage('/dashboard/push_notifications/settings/publish', $pkg, t('Publish Types'));
 
         // install tasks
         $this->installContentFile('tasks.xml');
@@ -148,7 +150,7 @@ class Controller extends PackageController
         } catch (\Throwable $e) {
             $message = t(
                 'The WebAppKit service worker could not be installed automatically and must be installed manually by running "./vendor/bin/install-service-worker". Details: %s',
-                $e->getMessage()
+                $e->getMessage(),
             );
 
             try {

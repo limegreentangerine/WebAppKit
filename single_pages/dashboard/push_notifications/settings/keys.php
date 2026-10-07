@@ -35,7 +35,7 @@
 
                     ConcreteEvent.subscribe('AjaxFormSubmitSuccess', function(e, data) {
                         if (data.form === 'regenerate-form') {
-                            window.location.href = <?php echo json_encode((string) \URL::to('/dashboard/push_notifications/settings')); ?>;
+                            window.location.href = <?php echo json_encode((string) \URL::to('/dashboard/push_notifications/settings/keys')); ?>;
                         }
                     });
                 });
@@ -43,38 +43,31 @@
         </div>
     <?php } ?>
 
-    <form method="post" action="<?php echo $view->action('save'); ?>">
-        <?php echo $token->output('push_notification_settings'); ?>
+    <fieldset>
+        <legend><?php echo t('VAPID Keys'); ?></legend>
 
-        <fieldset>
-            <legend><?php echo t('Status'); ?></legend>
-
+        <?php if (isset($vapidKeys)) { ?>
             <div class="form-group">
-                <div class="form-check">
-                    <input type="checkbox" id="activate" name="activate" class="form-check-input" value="1" <?php echo (isset($formContent) && isset($formContent['activate'])) ? 'checked' : ((isset($config) && $config->get('push_notifications.activate') == true) ? 'checked' : ''); ?> />
-                    <label for="activate" class="form-check-label"><?php echo t('Activate Push Notifications'); ?></label>
-                </div>
-            </div>
-        </fieldset>
-
-        <fieldset>
-            <legend><?php echo t('Subject Line'); ?></legend>
-
-            <div class="form-group">
-                <?php echo $form->label('subject', t('Broadcast subject')); ?>
-                <div class="float-end">
-                    <span class="text-muted small"><?php echo t('Required'); ?></span>
-                </div>
-                <?php echo $form->text('subject', (isset($formContent)) ? $formContent['subject'] : ((isset($config)) ? $config->get('push_notifications.subject') : 'devrow@limegreentangerine.co.uk')); ?>
-                <div class="help-block"><?php echo t('Must be a valid email address.'); ?></div>
+                <?php echo $form->label('publicKey', t('Public Key')); ?>
+                <?php echo $form->text('publicKey', $vapidKeys->getPublicKey() ?? null, [ 'readonly' => 'readonly', 'disabled' => 'disabled' ]); ?>
             </div>
 
-        </fieldset>
+            <div class="form-group">
+                <?php echo $form->label('privateKey', t('Private Key')); ?>
+                <?php echo $form->password('privateKey', $vapidKeys->getPrivateKey() ?? null, [ 'readonly' => 'readonly', 'disabled' => 'disabled' ]); ?>
+            </div>
+        <?php } else { ?>
+            <div class="alert alert-info"><?php echo t('VAPID keys missing, try <a href="%s">generating</a> them', $this->action('generate_keys')); ?></div>
+        <?php } ?>
+    </fieldset>
 
+    <?php if (!isset($vapidKeys)) { ?>
         <div class="ccm-dashboard-form-actions-wrapper">
             <div class="ccm-dashboard-form-actions">
-                <?php echo $form->submit('save', t('Save'), ['class' => 'btn btn-primary float-end']); ?>
+                <a href="<?php echo $this->action('generate_keys'); ?>" class="btn btn-primary float-end">
+                    <?php echo t('Generate Keys'); ?>
+                </a>
             </div>
         </div>
-    </form>
+    <?php } ?>
 <?php } ?>

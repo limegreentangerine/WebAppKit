@@ -2,8 +2,6 @@
 
 namespace WebApp\Images;
 
-use WebApp\Images\WebAppImageController;
-
 class Icons extends WebAppImageController
 {
     public static function getSizes(): array
@@ -16,7 +14,7 @@ class Icons extends WebAppImageController
             '168x168',
             '192x192',
             '256x256',
-            '512x512'
+            '512x512',
         ];
     }
 }

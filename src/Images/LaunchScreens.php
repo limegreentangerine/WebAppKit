@@ -2,8 +2,6 @@
 
 namespace WebApp\Images;
 
-use WebApp\Images\WebAppImageController;
-
 class LaunchScreens extends WebAppImageController
 {
     public static function getSizes(): array
@@ -22,7 +20,7 @@ class LaunchScreens extends WebAppImageController
             '1668x2224',
             '1640x2360',
             '1668x2388',
-            '2048x2732'
+            '2048x2732',
         ];
     }
 }

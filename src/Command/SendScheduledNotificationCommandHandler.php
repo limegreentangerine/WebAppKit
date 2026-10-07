@@ -24,25 +24,25 @@ class SendScheduledNotificationCommandHandler implements OutputAwareInterface
         $logger->addDebug($type);
 
         match ($type) {
-            'news' => (function() use ($logger, $command) {
-
+            'news' => (function () use ($logger, $command) {
+                // TODO: on publish actions
             })(),
-            'custom' => (function() use ($logger, $command) {
+            'custom' => (function () use ($logger, $command) {
                 $custom = CustomNotification::getByID($command->getReferenceId());
                 if (is_object($custom)) {
                     $event = new GenericEvent();
                     $event->setArgument('notification', $custom);
                     Events::dispatch('send_custom_notification', $event);
 
-                    // // remove custom notification key to avoid repeats
-                    // $em = Core::make(EntityManagerInterface::class);
-                    // $em->remove($custom);
-                    // $em->flush($custom);
+                    // remove custom notification key to avoid repeats
+                    $em = Core::make(EntityManagerInterface::class);
+                    $em->remove($custom);
+                    $em->flush($custom);
                 } else {
                     $logger->addError(t('Custom notification not sent, notification not found (Reference ID: %s)', $command->getReferenceId()));
                 }
             })(),
-            default => (function() use ($logger, $command) {
+            default => (function () use ($logger, $command) {
                 $logger->addDebug(t('Unknown type, notification not sent (Reference ID: %s)', $command->getReferenceId()));
             })()
         };

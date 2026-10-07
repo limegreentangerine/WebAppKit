@@ -2,23 +2,23 @@
 
 namespace WebApp\Events;
 
-use ClassKit\Environment\Environment;
-use Concrete\Core\Package\PackageService;
-use Concrete\Core\Page\Page;
 use Core;
-use Exception;
 use File;
-use GuzzleHttp\Client as HttpClient;
-use GuzzleHttp\Exception\RequestException;
-use Minishlink\WebPush\Subscription;
-use Minishlink\WebPush\WebPush;
+use Exception;
 use Monolog\Logger;
-use WebApp\Entity\CustomNotification;
 use WebApp\Entity\PushKey;
-use WebApp\Events\Subscription as WebAppSubscription;
+use Concrete\Core\Page\Page;
+use Minishlink\WebPush\WebPush;
 use WebApp\Log\PushNotificationLog;
+use GuzzleHttp\Client as HttpClient;
+use Minishlink\WebPush\Subscription;
+use ClassKit\Environment\Environment;
+use WebApp\Entity\CustomNotification;
+use Concrete\Core\Package\PackageService;
+use GuzzleHttp\Exception\RequestException;
 use WebApp\Response\PushNotificationError;
 use WebApp\Response\PushNotificationResponse;
+use WebApp\Events\Subscription as WebAppSubscription;
 use WebApp\Search\ItemList\PushSubscription\PushSubscriptions as SubscriptionList;
 
 class Push
@@ -217,7 +217,7 @@ class Push
                     'Cache-Control' => 'no-cache',
                     'Content-Type' => 'application/json',
                 ],
-                'idn_conversion' => false
+                'idn_conversion' => false,
             ];
 
             if (!empty($data)) {

@@ -2,8 +2,8 @@
 
 namespace Concrete\Package\WebApp\Controller\SinglePage\Dashboard;
 
-use Concrete\Core\Page\Controller\DashboardPageController;
 use Symfony\Component\HttpFoundation\Response;
+use Concrete\Core\Page\Controller\DashboardPageController;
 
 class PushNotifications extends DashboardPageController
 {
