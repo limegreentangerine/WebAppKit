@@ -71,9 +71,9 @@ class PushNotificationResponse
     /**
      * Get the value of body decoded
      *
-     * @return string
+     * @return mixed
      */
-    public function getBodyDecoded(bool $asAssoc = false): string
+    public function getBodyDecoded(bool $asAssoc = false): mixed
     {
         return json_decode($this->body, $asAssoc, 512, JSON_THROW_ON_ERROR);
     }

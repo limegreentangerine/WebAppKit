@@ -95,7 +95,7 @@ npm install
 
 ### Tests
 
-Run the PHPUnit test suite, including package metadata checks and service-worker installer success and error handling:
+Run the PHPUnit suite, including package metadata and service-worker installation checks, entity accessor and serialization tests, image size validation, command value tests, and push-response JSON decoding:
 
 ```bash
 composer test

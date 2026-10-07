@@ -58,7 +58,7 @@ class PushSubscription extends BaseEntity
      */
     public function setSubscription(string $subscription): self
     {
-        $this->subscription = json_encode($subscription);
+        $this->subscription = $subscription;
 
         return $this;
     }

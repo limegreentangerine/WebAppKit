@@ -2,6 +2,13 @@
 
 Notable changes to WebAppKit are documented in this file.
 
+## [Unreleased]
+
+### Fixed
+
+- Preserve push subscription JSON as supplied instead of encoding the JSON string a second time.
+- Allow push response JSON decoding to return either an object or an associative array.
+
 ## [1.0.0] - 2026-10-07
 
 ### Added
